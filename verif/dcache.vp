@@ -1,0 +1,46 @@
+// dcache.vp
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $me = parameter( name=>"MemEntries", val=>(2**$wl), doc=>"No of memory entries" );
+
+module `mname`(
+		output logic [`$wl-1`:0] dCacheReadData,
+		input  logic [`$wl-1`:0] dCacheWriteData,
+		input  logic [`$wl-1`:0] dCacheAddr,
+		input  logic dCacheWriteEn,
+		input  logic dCacheReadEn,
+		input  logic clk
+);
+	logic [`($wl/4)-1`:0] mem [0:255];  // 32-bit memory with 2^32 entries
+
+	always @(negedge clk) begin
+		if (dCacheWriteEn) begin
+			mem[dCacheAddr] <= dCacheWriteData[7:0];
+			mem[dCacheAddr+1] <= dCacheWriteData[15:8];
+			mem[dCacheAddr+2] <= dCacheWriteData[23:16];
+			mem[dCacheAddr+3] <= dCacheWriteData[31:24];
+		end
+	end
+
+	//assign dCacheReadData = dCacheReadEn ? mem[dCacheAddr] : `$wl`'hXXXXXXXX;
+	always_comb begin
+		if(dCacheReadEn) begin
+			dCacheReadData[7:0] = mem[dCacheAddr];
+			dCacheReadData[15:8] = mem[dCacheAddr+1];
+			dCacheReadData[23:16] = mem[dCacheAddr+2];
+			dCacheReadData[31:24] = mem[dCacheAddr+3];
+		end
+		else begin
+			dCacheReadData = `$wl`'hXXXXXXXX;
+		end
+	end
+	// During a write, avoid the one cycle delay by reading from 'dCacheWriteData'
+
+	initial begin
+		$readmemh("verif/dcache_letterfreq_string.txt", mem, 0, 255);
+	end
+
+	final begin
+		$writememh("verif/dcache_data.txt", mem, 0, 255);
+	end
+
+endmodule: `mname`

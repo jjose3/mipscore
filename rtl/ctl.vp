@@ -1,0 +1,116 @@
+// ctl.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+module `mname`(
+		input  logic [5:0] op,
+		input  logic [5:0] func,
+		output logic [5:0] mfunc,
+		output logic       beq, bne, bgtz,
+		output logic [1:0] aluop,
+		output logic 	   aluimm,
+		output logic       memrden, memwren, memtoreg,
+		output logic       regdst, regwren, alusrc, srcrden0, srcrden1,
+		output logic       jmpreg,
+		output logic       jmp);
+
+	always_comb begin
+		aluop[1:0]	= 2'b10;
+		aluimm		= 1'b0;
+		alusrc		= 1'b0;
+		beq      	= 1'b0;
+		bne      	= 1'b0;
+		bgtz      	= 1'b0;
+		memrden		= 1'b0;
+		memtoreg	= 1'b0;
+		memwren 	= 1'b0;
+		regdst		= 1'b1;
+		regwren	        = 1'b1;
+		srcrden0        = 1'b1;
+		srcrden1        = 1'b1;
+		jmp		= 1'b0;
+		jmpreg		= 1'b0;
+		mfunc		= 6'd0;
+
+	       case (op)
+			6'b100011: begin	/* lw */
+				memrden  = 1'b1;
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				memtoreg = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+			end
+			6'b001000: begin       /* addi */
+				regdst   = 1'b0;
+				alusrc   = 1'b1;
+				srcrden1 = 1'b0;
+				aluimm   = 1'b1;
+				mfunc     = 6'b100000;
+			end
+			6'b001100: begin       /* andi */
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				alusrc   = 1'b1;
+				aluimm   = 1'b1;
+				mfunc     = 6'b100100;
+			end
+			6'b001101: begin       /* ori */
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				alusrc   = 1'b1;
+				aluimm   = 1'b1;
+				mfunc     = 6'b100101;
+			end
+			6'b001010: begin       /* slti */
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				alusrc   = 1'b1;
+				aluimm   = 1'b1;
+				mfunc     = 6'b101010;
+			end
+			6'b001110: begin       /* xori */
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				alusrc   = 1'b1;
+				aluimm   = 1'b1;
+				mfunc     = 6'b100110;
+			end
+			6'b000100: begin	/* beq */
+				aluop     = 2'b01;
+				beq       = 1'b1;
+				regwren  = 1'b0;
+			end
+			6'b000101: begin	/* bne */
+				aluop     = 2'b01;
+				bne       = 1'b1;
+				regwren  = 1'b0;
+			end
+			6'b000111: begin	/* bgtz */
+				aluop     = 2'b01;
+				srcrden1 = 1'b0;
+				bgtz      = 1'b1;
+				regwren  = 1'b0;
+			end
+			6'b101011: begin	/* sw */
+				memwren  = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				regwren = 1'b0;
+			end
+			6'b000000: begin	/* add, and, nor, or, slt, sub, xor, jr, sra */
+				if(func == 6'h08) begin
+					jmpreg = 1'b1;   /* jr */
+					regdst		= 1'b0;
+					regwren	= 1'b0;
+					srcrden1 = 1'b0;
+				end else begin
+					jmpreg = 1'b0;
+				end
+			end
+			6'b000010: begin	/* j jump */
+				jmp      = 1'b1;
+				srcrden1 = 1'b0;
+				srcrden0 = 1'b0;
+			end
+		endcase
+	end
+endmodule : `mname`

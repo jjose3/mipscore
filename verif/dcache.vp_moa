@@ -1,0 +1,32 @@
+// dcache.vp
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $me = parameter( name=>"MemEntries", val=>(2**$wl), doc=>"No of memory entries" );
+
+module `mname`(
+		output logic [`$wl-1`:0] dCacheReadData,
+		input  logic [`$wl-1`:0] dCacheWriteData,
+		input  logic [`$wl-1`:0] dCacheAddr,
+		input  logic dCacheWriteEn,
+		input  logic dCacheReadEn,
+		input  logic clk
+);
+	logic [`$wl-1`:0] mem [0:255];  // 32-bit memory with 2^32 entries
+
+	always @(negedge clk) begin
+		if (dCacheWriteEn) begin
+			mem[dCacheAddr] <= dCacheWriteData;
+		end
+	end
+
+	assign dCacheReadData = dCacheReadEn ? mem[dCacheAddr][`$wl-1`:0] : `$wl`'hXXXXXXXX;
+	// During a write, avoid the one cycle delay by reading from 'dCacheWriteData'
+
+	initial begin
+		$readmemh("verif/dcache_meanofanarray.txt", mem, 0, 255);
+	end
+
+	final begin
+		$writememh("verif/dcache_data.txt", mem, 0, 255);
+	end
+
+endmodule: `mname`

@@ -1,0 +1,107 @@
+// tasks.vph
+
+
+	task testcase_moa();
+		
+		begin
+		initialize();
+		waitforend_moa();
+		passorfail_moa();
+		end
+	endtask
+
+	task testcase_ssm();
+		
+		begin
+		initialize();
+		waitforend_ssm();
+		passorfail_ssm();
+		end
+	endtask
+
+	task testcase_lfs();
+		
+		begin
+		initialize();
+		waitforend_lfs();
+		lettercount_lfs();
+		end
+	endtask
+
+	task initialize();
+		begin
+			taskstop = 1'b0;
+			taskdone = 1'b0;
+			$display("Time %t: Initiating Reset", $time);
+			rst = 1'b0;
+			@(posedge triggerStart);
+			repeat(3) @(posedge clk );
+			rst = 1'b1;
+			$display("Time %t: Reset Done", $time);
+			$monitor("Time %t: Instruction %h performing at %h", $time, iCacheReadData, iCacheReadAddr);
+		end
+	endtask
+
+	task waitforend_moa();
+		begin
+			@(iCacheReadAddr == `$wl`'h040);
+			repeat(1) @(posedge clk );
+			if(my_dcache.mem[40] === `$wl`'hFFFFDEAD) begin
+				$display("Time %t: Testcase Done", $time);
+				$monitoroff;
+			end
+			else	$display("Time %t: Testcase not completed", $time);			
+		end
+	endtask
+	task passorfail_moa();
+		begin
+			if(my_dcache.mem[20] === `$wl`'h2f) begin
+				$display("Time %t: Testcase passed", $time);
+			end
+			else begin
+				$display("Time %t: Testcase failed", $time);
+			end
+			taskstop = 1'b1;
+		end
+	endtask
+
+	task waitforend_ssm();
+		begin
+			@(iCacheReadAddr[7:0] == 8'h60);
+			repeat(1) @(posedge clk );
+			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
+				$display("Time %t: Testcase Done", $time);
+				$monitoroff;
+			end
+			else	$display("Time %t: Testcase not completed", $time);			
+		end
+	endtask
+	task passorfail_ssm();
+		begin
+			if(my_dcache.mem[20] == 8'hCE && my_dcache.mem[21] == 8'h0A) begin
+				$display("Time %t: Match found", $time);
+			end
+			else if (my_dcache.mem[20] == 8'hAD && my_dcache.mem[21] == 8'h0B) begin
+				$display("Time %t: Match not found", $time);
+			end else $display("Time %t: Error - Testcase failed to write to match location", $time);
+			taskstop = 1'b1;
+		end
+	endtask
+
+	task waitforend_lfs();
+		begin
+			@(iCacheReadAddr[7:0] == 8'h44);
+			repeat(1) @(posedge clk );
+			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
+				$display("Time %t: Testcase Done", $time);
+				$monitoroff;
+			end
+			else	$display("Time %t: Testcase not completed", $time);			
+		end
+	endtask
+	task lettercount_lfs();
+		begin
+			$display("Time %t: Letter frequency = %h", $time, my_dcache.mem[20]);
+			taskstop = 1'b1;
+		end
+	endtask

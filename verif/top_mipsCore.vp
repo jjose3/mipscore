@@ -1,0 +1,144 @@
+//top_mipsCore.vp
+
+
+module `mname` ();
+
+
+
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $iW = parameter( name=>"issueWidth", val=>1, doc=>"Number of fetched instructions" );
+//; my $rP = parameter( name=>"rfReadPorts", val=>2, doc=>"Number of RF read ports" );
+//; my $wP = parameter( name=>"rfWritePorts", val=>1, doc=>"Number of RF write ports" );
+//; my $rC = parameter( name=>"rfEntryCount", val=>32, max=>128, doc=>"Number of RF addresses");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+//; my $btb = parameter( name=>"enableBTB", val=>0, list=>[0,1], doc=>"Enable BTB");
+//; my $btbW = parameter( name=>"entrySizeBTB", val=>34, max=>36, doc=>"BTB entry size");
+//; my $btbC = parameter( name=>"entryCountBTB", val=>0, max=>256, doc=>"BTB entries");
+//; my $mD = parameter( name=>"MipsMode", val=>"Cyc1", list=>["Cyc1","Cyc5","Smpl5","Fwd5","Dual"], doc=>"Iterative design state, testbench will ignore" );
+
+
+//; my $dut = generate_base("mipsCore", "my_mipsCore");
+//; my $dc = generate_base("dcache", "my_dcache");
+//; my $ic = generate_base("icache", "my_icache");
+//; my $rf = generate_base("rf", "my_rf");
+//; my $gb = generate("generic_bench", "BASIC_BENCH");
+//; my $pc = generate("cycle_counter", "PERF_COUNT", CycleName=>"multRate_cyc");
+//; my $ec = generate("cycle_counter", "ERROR_COUNT", CountName=>"mult_err_cnt");
+
+    logic 			  perf ; 
+
+    logic             instr_err ;
+    logic             instr_vld ;
+    logic   [5:0]     instr_cnt ;
+    logic   [5:0]     instr_ver ;
+
+    logic             triggerStart;
+    logic             triggerStop;
+    int               seed;
+    int               clk_period ;
+
+    logic signed [`$wl-1`:0] instr, pc, src0, src1, memRdData, memRdAddr, memWrData , memWrAddr , dst0, pcNxt;
+    logic             memRdEn, memWrEn;
+    logic [5:0] op; //opcode 
+    logic [4:0] rs; //register s r-type
+    logic [4:0] rt; // register t r-type
+    logic [4:0] rd; // register d r-type
+    logic [4:0] shmt; //shift amount r-type
+    logic [5:0] fn; //function - r-type
+    logic signed [15:0] imm; //immediate for i-type
+    logic signed [31:0] simm; //immediate for i-type
+    logic signed [25:0] offs; //offset for j-type
+
+	logic [`$iW*$wl-1`:0] iCacheReadData;
+	logic [`$wl-1`:0] iCacheReadAddr;
+	logic [`$wl-1`:0] dCacheReadData;
+	logic [`$wl-1`:0] dCacheWriteData;
+	logic [`$wl-1`:0] dCacheAddr;
+	logic dCacheWriteEn;
+	logic dCacheReadEn;
+	//; for( my $i = 0 ; $i < $rP ; $i++ ){
+	logic [`$wl-1`:0] rfReadData_p`$i`;
+	logic [`$rA-1`:0] rfReadAddr_p`$i`;
+	logic rfReadEn_p`$i`;
+	//; }
+	//; for( my $i = 0 ; $i < $wP ; $i++ ){
+	logic [`$wl-1`:0] rfWriteData_p`$i`;
+	logic [`$rA-1`:0] rfWriteAddr_p`$i`;
+	logic rfWriteEn_p`$i`;
+	//; }
+	//; if( $btb ){
+	logic [`$btbW-1`:0] btbReadData;
+	logic [`$btbW-1`:0] btbWriteData;
+	logic [`$wl-1`:0] btbWriteAddr;
+	logic [`$wl-1`:0] btbReadAddr;
+	logic btbWriteEn;
+	logic btbReadEn;
+	//; }
+	logic clk;
+	logic rst;
+	logic taskstop;
+	logic taskdone;
+
+
+    // Instantiate the design under test and basic bench
+    `$dut->instantiate()` (.*);
+    `$dc->instantiate()` (.*);
+    `$ic->instantiate()` (.*);
+    `$rf->instantiate()` (.*);
+    `$gb->instantiate()`  (.*);
+    `$pc->instantiate()`  (.triggerStart(perf), .triggerStop(triggerStop), .increment(instr_vld), .clk(clk), .rst(rst) );
+    `$ec->instantiate()`  (.triggerStart(triggerStart), .triggerStop(triggerStop), .increment(instr_err), .clk(clk), .rst(rst) );
+
+    initial begin
+	testcase_lfs();
+    end
+    // Simulation Narrative
+    initial begin
+    	triggerStart  = 1'b0 ;
+    	triggerStop = 1'b0 ;
+	perf = 1'b0;
+    	repeat(10) @(posedge clk );
+    	triggerStart  = 1'b1 ;
+    	perf = 1'b1 ;
+	@(taskstop);
+    	triggerStop = 1'b1 ;
+    	$finish();
+    end
+
+	//always@(posedge clk) begin
+	//if(triggerStart && ~triggerStop) begin
+	//if(instr_cnt == 5'b0) begin
+	//op = 6'd0; rs = 5'd0; rt = 5'd0; rd = 5'd0; shmt = 5'd0; fn = 6'd0; imm = 16'd0; offs = 26'd0;  // Do Nothing
+	//instr = {op, rs, rt, rd, shmt, fn}; pc = `$wl`'h0; src0 = `$wl`'h0; src1 = `$wl`'h0; memRdData = `$wl`'h0;
+	//iCacheReadData = instr; dCacheReadData = $random(); rfReadData_p0 = $random(); rfReadData_p1 = $random();
+	//end
+	//if(instr_ver == 5'b0) begin
+	////check("NOTHING", instr, iCacheReadAddr, `$wl`'h4, dCacheWriteData, rfReadData_p1, dCacheAddr, `$wl`'h0, rfReadAddr_p0, `$wl`'h0, rfReadAddr_p1, pc+4 , rfWriteData_p0, 0, rfWriteAddr_p0, 0, dCacheWriteEn, 0, dCacheReadEn, 0, rfReadEn_p0, 0, rfReadEn_p1, 0, rfWriteEn_p0, 0);
+	//end
+
+	//end
+	//end
+
+
+function check;
+input string inst;
+input [`$wl-1`:0] instr, para0, opara0, para1 , opara1 , para2, opara2, para3, opara3, para4, opara4, para5, opara5, para6, opara6;
+input para7, opara7, para8, opara8, para9, opara9, para10, opara10, para11, opara11;
+$display("Performing instruction %s %h", inst, instr);
+assert(para0 == opara0) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para0, opara0);
+assert(para1 == opara1) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para1 ,opara1);
+assert(para2 == opara2) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para2, opara2);
+assert(para3 == opara3) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para3, opara3);
+assert(para4 == opara4) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para4, opara4);
+assert(para5 == opara5) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para5, opara5);
+assert(para6 == opara6) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para6, opara6);
+assert(para7 == opara7) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para7, opara7);
+assert(para8 == opara8) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para8, opara8);
+assert(para9 == opara9) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para9, opara9);
+assert(para10 == opara10) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para10, opara10);
+assert(para11 == opara11) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para11, opara11);
+endfunction
+
+
+//; include("verif/tasks.vph");
+endmodule

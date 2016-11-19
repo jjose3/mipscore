@@ -1,0 +1,75 @@
+// rf.vp
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $rP = parameter( name=>"rfReadPorts", val=>2, doc=>"Number of RF read ports" );
+//; my $wP = parameter( name=>"rfWritePorts", val=>1, doc=>"Number of RF write ports" );
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+//; my $rE = parameter( name=>"rfRegisterEntries", val=>(2**$rA) , doc=>"No of RF entries" );
+
+module `mname`(
+		//; for( my $i = 0 ; $i < $rP ; $i++ ){
+	        output logic [`$wl-1`:0] rfReadData_p`$i`,
+	        input  logic [`$rA-1`:0] rfReadAddr_p`$i`,
+	        input  logic rfReadEn_p`$i`,
+	        //; }
+	        //; for( my $i = 0 ; $i < $wP ; $i++ ){
+	        input  logic [`$wl-1`:0] rfWriteData_p`$i`,
+	        input  logic [`$rA-1`:0] rfWriteAddr_p`$i`,
+	        input  logic rfWriteEn_p`$i`,
+	        //; }
+		input logic clk
+		);
+
+	reg [`$wl-1`:0] mem [0:`$rE-1`];  // 32-bit memory with 2^5 entries
+
+	reg [`$wl-1`:0] _rfRdData0, _rfRdData1;
+
+	initial begin
+			$monitor("%x, %x, %x, %x, %x, %x, %x",
+					mem[2][31:0],	/* $t7 */
+					mem[4][31:0],	/* $t7 */
+					mem[5][31:0],	/* $t7 */
+					mem[10][31:0],	/* $t7 */
+					mem[11][31:0],	/* $t7 */
+					mem[16][31:0],	/* $t7 */
+					mem[17][31:0],	/* $t7 */
+				);
+	end
+
+	always_comb begin
+		if (rfReadAddr_p0 == `$rA`'d0 && rfReadEn_p0)
+			_rfRdData0 = `$wl`'d0;
+		//else if ((rfReadAddr_p0 == rfWriteAddr_p0) && rfWriteEn_p0)
+		//	_rfRdData0 = rfWriteData_p0;
+		else if (rfReadEn_p0)
+			_rfRdData0 = mem[rfReadAddr_p0][`$wl-1`:0];
+	end
+
+	always_comb begin
+		if (rfReadAddr_p1 == `$rA`'d0 && rfReadEn_p1)
+			_rfRdData1 = `$wl`'d0;
+		//else if ((rfReadAddr_p1 == rfWriteAddr_p0) && rfWriteEn_p0)
+		//	_rfRdData1 = rfWriteData_p0;
+		else if (rfReadEn_p1)
+			_rfRdData1 = mem[rfReadAddr_p1][`$wl-1`:0];
+	end
+
+	assign rfReadData_p0 = _rfRdData0;
+	assign rfReadData_p1 = _rfRdData1;
+
+	always @(negedge clk) begin
+		if (rfWriteEn_p0 && rfWriteAddr_p0 != `$rA`'d0) begin
+			// write a non $zero register
+			mem[rfWriteAddr_p0] <= rfWriteData_p0;
+		end
+		//$display("readdata0 = %h readaddr0 = %h readen0 = %h", rfReadData_p0, rfReadAddr_p0, rfReadEn_p0);
+		//$display("writedata0 = %h writeaddr0 = %h writeen0 = %h", rfWriteData_p0, rfWriteAddr_p0, rfWriteEn_p0);
+		//$display("readdata1 = %h readaddr1 = %h readen1 = %h", rfReadData_p1, rfReadAddr_p1, rfReadEn_p1);
+	end
+
+	final begin
+		$writememh("verif/regfile_data.txt", mem, 0, 31);
+	end
+
+
+	assert property (@(posedge clk) (rfWriteEn_p0 && (rfWriteAddr_p0 == `$rA`'d0)) |-> (rfWriteData_p0 == `$wl`'d0));
+endmodule: `mname`

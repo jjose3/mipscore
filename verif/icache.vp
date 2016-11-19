@@ -1,0 +1,29 @@
+// icache.vp
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $me = parameter( name=>"MemEntries", val=>(2**$wl), doc=>"No of memory entries" );
+
+
+module `mname`(
+		input  logic clk,
+		input  logic [`$wl-1`:0] iCacheReadAddr,
+		output logic [`$wl-1`:0] iCacheReadData
+		);
+
+	logic [`$wl-1`:0] mem [0:255];  // 32-bit memory with 2^32 entries
+
+	initial begin
+		$readmemh("verif/icache_data.txt", mem, 0, 255);
+		//$monitor("0: %h	\
+		//	  4: %h \
+		//	  8: %h \
+		//	  c: %h \
+		//	  10: %h", mem[0][`$wl-1`:0], mem[4][`$wl-1`:0], mem[8][`$wl-1`:0], mem[12][`$wl-1`:0], mem[16][`$wl-1`:0]);
+	end
+	
+	//always @(posedge clk) begin
+	always_comb begin
+		iCacheReadData = mem[iCacheReadAddr[7:0]][`$wl-1`:0];
+		//$display("Cache data = %h", iCacheReadData);
+	end
+
+endmodule: `mname`

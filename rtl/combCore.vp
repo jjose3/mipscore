@@ -1,0 +1,97 @@
+// combCore.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic [`$bW-1`:0] instr,
+input logic [`$bW-1`:0] pc,
+input logic [`$bW-1`:0] src0,
+input logic [`$bW-1`:0] src1,
+input logic [`$bW-1`:0] memRdData,
+output logic [`$bW-1`:0] memRdAddr,
+output logic memRdEn,
+output logic [`$bW-1`:0] memWrData ,
+output logic [`$bW-1`:0] memWrAddr,
+output logic memWrEn ,
+output logic regWrEn,
+output logic [`$rA-1`:0] regWrAddr,
+output logic [`$rA-1`:0] srcAddr0 ,
+output logic srcRdEn0 ,
+output logic [`$rA-1`:0] srcAddr1 ,
+output logic srcRdEn1 ,
+output logic [`$bW-1`:0] dst0,
+output logic [`$bW-1`:0] pcNxt
+);
+
+logic [5:0] op; //opcode 
+logic [4:0] rs; //register s r-type
+logic [4:0] rt; // register t r-type
+logic [4:0] rd; // register d r-type
+logic [4:0] shmt; //shift amount r-type
+logic [5:0] fn; //function - r-type
+logic [5:0] mfn; //function created for I-type
+logic [5:0] muxfunc; //muxed function
+logic [15:0] imm; //immediate for i-type
+logic [`$bW-1`:0] simm; //sign ext immediate for i-type
+logic [25:0] offs; //offset for j-type
+
+logic [`$bW-1`:0] pcplus4;
+logic [`$bW-1`:0] pcplusimm;
+logic [`$bW-1`:0] jmpaddr;
+logic [`$bW-1`:0] alu_o, alu_a, alu_b;
+
+logic [3:0] aluctl;  
+logic [1:0] aluop;  
+logic bne, bgtz, beq, zero, gtz, branch, jmp, jmpreg, alusrc, aluimm, memtoreg, regdst; 
+
+assign op = instr[31:26];
+assign rs = instr[25:21];
+assign rt = instr[20:16];
+assign rd = instr[15:11];
+assign shmt = instr[10:6];
+assign fn = instr[5:0];
+assign imm = instr[15:0];
+assign simm = {{16{instr[15]}}, instr[15:0]};
+assign offs = instr[25:0];
+
+assign srcAddr0 = rs;
+assign srcAddr1 = rt;
+
+assign pcplus4 = pc + `$bW`'d4;
+assign pcplusimm = pcplus4 + {simm[`$bW-3`:0], 2'b0};
+assign jmpaddr = {pcplus4[31:28], offs[25:0], 2'b0};
+
+assign branch = (bgtz && gtz) || (bne && ~zero) || (beq && zero);
+
+always_comb begin
+	unique case({jmp, jmpreg, branch})
+		3'b001:	   pcNxt = pcplusimm;
+		3'b010:    pcNxt = src0;
+		3'b100:    pcNxt = jmpaddr; 
+		default:   pcNxt = pcplus4;
+	endcase
+end
+
+assign alu_b = alusrc ? simm : src1;
+assign alu_a = src0;
+assign muxfunc = aluimm ? mfn : fn;
+
+assign memWrAddr = alu_o;
+assign memRdAddr = alu_o;
+assign memWrData = src1;
+
+assign dst0 = memtoreg ? memRdData : alu_o;
+assign regWrAddr = regdst ? rd : rt;
+
+// Instantiations
+
+//;  my $ctl = generate_base( "ctl" , "CPU_CTL");
+`$ctl->instantiate()`(.op(op), .func(fn), .mfunc(mfn), .beq(beq), .bne(bne), .bgtz(bgtz), .aluop(aluop), .aluimm(aluimm), .memrden(memRdEn), .memwren(memWrEn), .memtoreg(memtoreg), .regdst(regdst), .regwren(regWrEn), .alusrc(alusrc), .srcrden0(srcRdEn0), .srcrden1(srcRdEn1), .jmpreg(jmpreg), .jmp(jmp));
+
+//; my $aluctl = generate_base("aluctl", "ALU_CTL");
+`$aluctl->instantiate()`(.func(muxfunc), .aluop(aluop), .aluctl(aluctl));
+
+//; my $alu = generate_base("alu", "ALU");
+`$alu->instantiate()`(.clk, .rst, .ctl(aluctl), .a(alu_a), .b(alu_b), .shmt(shmt), .out(alu_o), .gtz(gtz), .zero(zero));
+endmodule: `mname`
