@@ -1,0 +1,22 @@
+@00000000
+20040040 	//	[ addi $a0 $zero 64  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000040)]
+@00000004
+20050060 	//	[ addi $a1 $zero 96  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000060)]
+@00000008
+80900000 	//	[ lb $s0 0($a0)  => I(op:32(lb) rs:4(a0) rt:16(s0) immed:0x00000000)]
+@0000000c
+12000004 	//	[ beq $s0 $zero quit  => I(op:4(beq) rs:16(s0) rt:0(zero) immed:0x00000004)]
+@00000010
+a0b00000 	//	[ sb $s0 0($a1)  => I(op:40(sb) rs:5(a1) rt:16(s0) immed:0x00000000)]
+@00000014
+20840001 	//	[ addi $a0 $a0 1  => I(op:8(addi) rs:4(a0) rt:4(a0) immed:0x00000001)]
+@00000018
+20a50001 	//	[ addi $a1 $a1 1  => I(op:8(addi) rs:5(a1) rt:5(a1) immed:0x00000001)]
+@0000001c
+08000002 	//	[ j getbytemain  => JFormat(op:2(j) target:0x00000008 >> 2 = 0x00000002)]
+@00000020
+200a0028 	//	[ addi $t2 $zero 40  => I(op:8(addi) rs:0(zero) rt:10(t2) immed:0x00000028)]
+@00000024
+200bdead 	//	[ addi $t3 $zero 57005  => I(op:8(addi) rs:0(zero) rt:11(t3) immed:0x0000dead)]
+@00000028
+ad4b0000 	//	[ sw $t3 0($t2) => I(op:43(sw) rs:10(t2) rt:11(t3) immed:0x00000000)]

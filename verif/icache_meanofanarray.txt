@@ -1,6 +1,6 @@
 // Mean of an array
 @00000000
-20040000 	//[ addi $a0 $zero 0  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000000)]
+20040034 	//[ addi $a0 $zero 0  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000032)]
 @00000004
 20100000 	//[ addi $s0 $zero 0  => I(op:8(addi) rs:0(zero) rt:16(s0) immed:0x00000000)]
 @00000008
@@ -8,7 +8,7 @@
 @0000000c
 20a80000 	//[ addi $t0 $a1 0  => I(op:8(addi) rs:5(a1) rt:8(t0) immed:0x00000000)]
 @00000010
-20840001 	//[ addi $a0 $a0 1  => I(op:8(addi) rs:4(a0) rt:4(a0) immed:0x00000004)]
+20840004 	//[ addi $a0 $a0 4  => I(op:8(addi) rs:4(a0) rt:4(a0) immed:0x00000004)]
 @00000014
 8c860000 	//[ lw $a2 0($a0)  => I(op:35(lw) rs:4(a0) rt:6(a2) immed:0x00000000)]
 @00000018

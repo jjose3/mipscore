@@ -3,12 +3,13 @@
 module `mname`(
 		input  logic [5:0] op,
 		input  logic [5:0] func,
+		input  logic [1:0] rt,
 		output logic [5:0] mfunc,
-		output logic       beq, bne, bgtz,
+		output logic       beq, bne, bgtz, bgez, blez, bltz, lwl, swl, lwr, swr,
 		output logic [1:0] aluop,
 		output logic 	   aluimm,
 		output logic       memrden, memwren, memtoreg,
-		output logic       regdst, regwren, alusrc, srcrden0, srcrden1,
+		output logic       regdst, regwren, alusrc, srcrden0, srcrden1, bytemem, wordmem,
 		output logic       jmpreg,
 		output logic       jmp);
 
@@ -19,15 +20,24 @@ module `mname`(
 		beq      	= 1'b0;
 		bne      	= 1'b0;
 		bgtz      	= 1'b0;
+		bgez      	= 1'b0;
+		blez      	= 1'b0;
+		bltz      	= 1'b0;
 		memrden		= 1'b0;
 		memtoreg	= 1'b0;
 		memwren 	= 1'b0;
+		bytemem		= 1'b0;
+		wordmem		= 1'b0;
 		regdst		= 1'b1;
 		regwren	        = 1'b1;
 		srcrden0        = 1'b1;
 		srcrden1        = 1'b1;
 		jmp		= 1'b0;
 		jmpreg		= 1'b0;
+		lwl 		= 1'b0;
+		swl 		= 1'b0;
+		lwr 		= 1'b0;
+		swr 		= 1'b0;
 		mfunc		= 6'd0;
 
 	       case (op)
@@ -39,7 +49,43 @@ module `mname`(
 				aluop    = 2'b00;
 				alusrc   = 1'b1;
 			end
-			6'b001000: begin       /* addi */
+			6'b100010: begin	/* lwl */
+				memrden  = 1'b1;
+				regdst   = 1'b0;
+				srcrden1 = 1'b1;
+				memtoreg = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				lwl	 = 1'b1;
+			end
+			6'b100110: begin	/* lwr */
+				memrden  = 1'b1;
+				regdst   = 1'b0;
+				srcrden1 = 1'b1;
+				memtoreg = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				lwr	 = 1'b1;
+			end
+			6'b100000: begin	/* lb */
+				memrden  = 1'b1;
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				bytemem  = 1'b1;
+				memtoreg = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+			end
+			6'b100001: begin	/* lh */
+				memrden  = 1'b1;
+				regdst   = 1'b0;
+				srcrden1 = 1'b0;
+				wordmem  = 1'b1;
+				memtoreg = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+			end
+			6'b001000, 6'b001001: begin       /* addi */
 				regdst   = 1'b0;
 				alusrc   = 1'b1;
 				srcrden1 = 1'b0;
@@ -90,11 +136,70 @@ module `mname`(
 				bgtz      = 1'b1;
 				regwren  = 1'b0;
 			end
+			6'b000001: begin	/* bgez, bltz */
+					aluop     = 2'b01;
+					srcrden1 = 1'b0;
+					regwren  = 1'b0;
+				case(rt)
+					2'b00: 	begin
+							bltz      = 1'b1;
+						end
+					2'b01: begin		
+							bgez      = 1'b1;
+					       end
+					2'b10: begin
+							bltz      = 1'b1;
+							regwren	  = 1'b1;
+					       end	
+					2'b11: begin
+							bgez      = 1'b1;
+							regwren	  = 1'b1;
+					       end			
+				endcase
+			end
+			6'b000110: begin	/* blez */
+				aluop     = 2'b01;
+				srcrden1 = 1'b0;
+				blez      = 1'b1;
+				regwren  = 1'b0;
+			end
 			6'b101011: begin	/* sw */
 				memwren  = 1'b1;
 				aluop    = 2'b00;
 				alusrc   = 1'b1;
 				regwren = 1'b0;
+			end
+			6'b101010: begin	/* swl */
+				memwren  = 1'b1;
+				memrden  = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				regwren = 1'b0;
+				swl	= 1'b1;
+			end
+			6'b101110: begin	/* swr */
+				memwren  = 1'b1;
+				memrden  = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				regwren = 1'b0;
+				swr	= 1'b1;
+			end
+			6'b101000: begin	/* sb */
+				memwren  = 1'b1;
+				memrden  = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				regwren = 1'b0;
+				bytemem = 1'b1;
+			end
+			6'b101001: begin	/* sh */
+				memwren  = 1'b1;
+				memrden  = 1'b1;
+				aluop    = 2'b00;
+				alusrc   = 1'b1;
+				regwren = 1'b0;
+				wordmem = 1'b1;
 			end
 			6'b000000: begin	/* add, and, nor, or, slt, sub, xor, jr, sra */
 				if(func == 6'h08) begin
@@ -102,11 +207,22 @@ module `mname`(
 					regdst		= 1'b0;
 					regwren	= 1'b0;
 					srcrden1 = 1'b0;
+				end else if(func == 6'h09) begin
+					jmpreg = 1'b1;   /* jalr */
+					regdst		= 1'b1;
+					regwren	= 1'b1;
+					srcrden1 = 1'b0;
 				end else begin
 					jmpreg = 1'b0;
 				end
 			end
 			6'b000010: begin	/* j jump */
+				jmp      = 1'b1;
+				srcrden1 = 1'b0;
+				srcrden0 = 1'b0;
+				regwren  = 1'b0;
+			end
+			6'b000011: begin	/* jal */
 				jmp      = 1'b1;
 				srcrden1 = 1'b0;
 				srcrden0 = 1'b0;
