@@ -2,11 +2,12 @@
 module `mname` (
 		input  logic clk,
 		input  logic rst,
-		input  logic [3:0]  ctl,
+		input  logic [4:0]  ctl,
 		input  logic [31:0] a, b,
 		input  logic [4:0]  shmt,
 		output logic [31:0] out,
 		output logic 	    gtz,
+		output logic 	    gez,
 		output logic 	    zero);
 
 	logic [31:0] sub_ab;
@@ -21,9 +22,11 @@ module `mname` (
 	logic 		oflow;
 	logic 		slt;
 	logic [31:0]	tmp;
+	logic [63:0]	mult;
 
 	assign zero = (0 == out);
 	assign gtz  = a[31] ? 0 : (|a[31:0]); 
+	assign gez  = a[31] ? 0 : 1; 
 
 	assign sub_ab = a - b;
 	assign add_ab = a + b;
@@ -35,29 +38,37 @@ module `mname` (
 	assign oflow_add = (a[31] == b[31] && add_ab[31] != a[31]) ? 1 : 0;
 	assign oflow_sub = (a[31] == b[31] && sub_ab[31] != a[31]) ? 1 : 0;
 
-	assign oflow = (ctl == 4'b0010) ? oflow_add : oflow_sub;
+	assign oflow = (ctl == 5'b0010) ? oflow_add : oflow_sub;
 
 	// set if less than, 2s compliment 32-bit numbers
 	assign slt = oflow_sub ? ~(a[31]) : a[31];
 
 	always_comb begin
 		unique case (ctl)
-			4'd0:  		out = a & b;				/* and */
-			4'd1:  		out = a | b;				/* or */
-			4'd2:  		out = add_ab;				/* add */
-			4'd3:  		begin HInxt = a%b; LOnxt = a/b; out = 0; end	/* div */
-			4'd6:  		out = sub_ab;				/* sub */
-			4'd7:  		out = {{31{1'b0}}, slt};		/* slt */
-			4'd10: 		out = HI;				/* mfhi */
-			4'd11: 		out = LO;				/* mflo */
-			4'd12: 		out = ~(a | b);				/* nor */
-			4'd13: 		out = a ^ b;				/* xor */
-			4'd14: 		begin tmp = b >> shmt; out = ({32{b[31]}} << (32-shmt)) + tmp; end			/* sra */
+			5'd0:  		out = a & b;				/* and */
+			5'd1:  		out = a | b;				/* or */
+			5'd2:  		out = add_ab;				/* add */
+			5'd3:  		begin HInxt = a%b; LOnxt = a/b; out = 0; end	/* div */
+			5'd4:		begin mult = a*b; HInxt = mult[63:32]; LOnxt = mult[31:0]; out = 0; end	/* mult */
+			5'd5:		out = b << shmt;			/* sll */
+			5'd6:  		out = sub_ab;				/* sub */
+			5'd7:  		out = {{31{1'b0}}, slt};		/* slt */
+			5'd8: 		begin HInxt = a; out = 0; end		/* mthi */
+			5'd9: 		begin LOnxt = a; out = 0; end   	/* mtlo */
+			5'd10: 		out = HI;				/* mfhi */
+			5'd11: 		out = LO;				/* mflo */
+			5'd12: 		out = ~(a | b);				/* nor */
+			5'd13: 		out = a ^ b;				/* xor */
+			5'd14: 		begin tmp = b >> shmt; out = ({32{b[31]}} << (32-shmt)) + tmp; end			/* sra */
+			5'd16:		out = b << a[4:0];			/* sllv */
+			5'd17:		out = b >> shmt;			/* srl */
+			5'd18:		out = b >> a[4:0];			/* srlv */
+			5'd19: 		begin tmp = b >> a[4:0]; out = ({32{b[31]}} << (32-a[4:0])) + tmp; end			/* srav */
 			default: 	out = 0;
 		endcase
 	end
 
-assign regen = (ctl == 4'd3);
+assign regen = (ctl == 5'd3);
 //; for( my $i = 0 ; $i < 32 ; $i++ ){
 //;  my $dff = generate_base( "dffen" , "D_FLIP_FLOP_HI".$i);
 `$dff->instantiate()` ( .din(HInxt[`$i`]), .en(regen), .clk, .rst, .q(HI[`$i`]) );
@@ -66,7 +77,5 @@ assign regen = (ctl == 4'd3);
 //;  my $dff = generate_base( "dffen" , "D_FLIP_FLOP_LO".$i);
 `$dff->instantiate()` ( .din(LOnxt[`$i`]), .en(regen), .clk, .rst, .q(LO[`$i`]) );
 //; }
-
-//assert(ctl == 4'b0010 || ctl == 4'b0110 && oflow == 1'b0);
 
 endmodule: `mname`

@@ -12,7 +12,12 @@ module `mname`(
 	logic [`$wl-1`:0] mem [0:255];  // 32-bit memory with 2^32 entries
 
 	initial begin
-		$readmemh("verif/icache_data.txt", mem, 0, 255);
+		string testname;
+		$value$plusargs("TESTNAME=%s", testname);
+		if(testname == "MOA") $readmemh("verif/icache_meanofanarray.txt", mem, 0, 255);
+		else if(testname == "SSM") $readmemh("verif/icache_substringmatch.txt", mem, 0, 255);
+		else if(testname == "LFS") $readmemh("verif/icache_letterfreq_string.txt", mem, 0, 255);
+		else if(testname == "SCP") $readmemh("verif/icache_stringcopy.txt", mem, 0, 255);
 		//$monitor("0: %h	\
 		//	  4: %h \
 		//	  8: %h \

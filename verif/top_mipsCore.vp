@@ -77,7 +77,6 @@ module `mname` ();
 	logic clk;
 	logic rst;
 	logic taskstop;
-	logic taskdone;
 
 
     // Instantiate the design under test and basic bench
@@ -89,8 +88,19 @@ module `mname` ();
     `$pc->instantiate()`  (.triggerStart(perf), .triggerStop(triggerStop), .increment(instr_vld), .clk(clk), .rst(rst) );
     `$ec->instantiate()`  (.triggerStart(triggerStart), .triggerStop(triggerStop), .increment(instr_err), .clk(clk), .rst(rst) );
 
+    string testname;
     initial begin
-	testcase_lfs();
+	if ( $test$plusargs("TESTNAME") ) begin
+		$value$plusargs("TESTNAME=%s", testname);
+		$display("Using Testname = %s", testname);
+		if(testname == "MOA") testcase_moa();
+		else if(testname == "SSM") testcase_ssm();
+		else if(testname == "LFS") testcase_lfs();
+		else if(testname == "SCP") testcase_scp();
+		else $fatal("FATAL ERROR - TESTNAME not found");
+        end else begin
+            $fatal("FATAL ERROR - TESTNAME not provided") ;
+        end
     end
     // Simulation Narrative
     initial begin
@@ -104,41 +114,6 @@ module `mname` ();
     	triggerStop = 1'b1 ;
     	$finish();
     end
-
-	//always@(posedge clk) begin
-	//if(triggerStart && ~triggerStop) begin
-	//if(instr_cnt == 5'b0) begin
-	//op = 6'd0; rs = 5'd0; rt = 5'd0; rd = 5'd0; shmt = 5'd0; fn = 6'd0; imm = 16'd0; offs = 26'd0;  // Do Nothing
-	//instr = {op, rs, rt, rd, shmt, fn}; pc = `$wl`'h0; src0 = `$wl`'h0; src1 = `$wl`'h0; memRdData = `$wl`'h0;
-	//iCacheReadData = instr; dCacheReadData = $random(); rfReadData_p0 = $random(); rfReadData_p1 = $random();
-	//end
-	//if(instr_ver == 5'b0) begin
-	////check("NOTHING", instr, iCacheReadAddr, `$wl`'h4, dCacheWriteData, rfReadData_p1, dCacheAddr, `$wl`'h0, rfReadAddr_p0, `$wl`'h0, rfReadAddr_p1, pc+4 , rfWriteData_p0, 0, rfWriteAddr_p0, 0, dCacheWriteEn, 0, dCacheReadEn, 0, rfReadEn_p0, 0, rfReadEn_p1, 0, rfWriteEn_p0, 0);
-	//end
-
-	//end
-	//end
-
-
-function check;
-input string inst;
-input [`$wl-1`:0] instr, para0, opara0, para1 , opara1 , para2, opara2, para3, opara3, para4, opara4, para5, opara5, para6, opara6;
-input para7, opara7, para8, opara8, para9, opara9, para10, opara10, para11, opara11;
-$display("Performing instruction %s %h", inst, instr);
-assert(para0 == opara0) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para0, opara0);
-assert(para1 == opara1) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para1 ,opara1);
-assert(para2 == opara2) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para2, opara2);
-assert(para3 == opara3) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para3, opara3);
-assert(para4 == opara4) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para4, opara4);
-assert(para5 == opara5) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para5, opara5);
-assert(para6 == opara6) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para6, opara6);
-assert(para7 == opara7) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para7, opara7);
-assert(para8 == opara8) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para8, opara8);
-assert(para9 == opara9) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para9, opara9);
-assert(para10 == opara10) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para10, opara10);
-assert(para11 == opara11) else $display("%t: Error - %s %h %b != %b", $time(), inst, instr, para11, opara11);
-endfunction
-
-
+	
 //; include("verif/tasks.vph");
 endmodule

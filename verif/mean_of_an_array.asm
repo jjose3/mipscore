@@ -1,6 +1,6 @@
 .text
 main:   
-        addi $a0, $zero, 0 ; base address
+        addi $a0, $zero, 52 ; base address
         addi   $s0, $zero, 0 ; initializing sum = 0
         lw     $a1, 0($a0)   ; loading number counter
         addi   $t0, $a1, 0   ; copy the counter

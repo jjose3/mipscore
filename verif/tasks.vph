@@ -1,20 +1,23 @@
 // tasks.vph
 
-
 	task testcase_moa();
 		
 		begin
+		randomize_moa();
 		initialize();
 		waitforend_moa();
+		calcipc();
 		passorfail_moa();
 		end
 	endtask
 
 	task testcase_ssm();
 		
-		begin
+		begin	
+		randomize_ssm();
 		initialize();
 		waitforend_ssm();
+		calcipc();
 		passorfail_ssm();
 		end
 	endtask
@@ -22,49 +25,170 @@
 	task testcase_lfs();
 		
 		begin
+		randomize_lfs();
 		initialize();
 		waitforend_lfs();
+		calcipc();
 		lettercount_lfs();
 		end
 	endtask
 
+	task testcase_scp();
+		
+		begin	
+		randomize_scp();
+		initialize();
+		waitforend_scp();
+		calcipc();
+		passorfail_scp();
+		end
+	endtask
+	
+	int cyclestart, cyclestop; real cyclecount, instrcount;
+	task calcipc();
+	real ipc;
+		begin
+		ipc = instrcount/cyclecount;
+		$display("Time %t: Calculated IPC : %f", $time, ipc);
+		end
+	endtask
+
+	always @(posedge clk) begin
+		if(cyclestart && ~cyclestop) begin
+			cyclecount=cyclecount+1;
+		end
+	end
+	always @(iCacheReadAddr) begin
+		if(cyclestart && ~cyclestop) begin
+			instrcount=instrcount+1;
+		end
+	end
+
 	task initialize();
 		begin
-			taskstop = 1'b0;
-			taskdone = 1'b0;
-			$display("Time %t: Initiating Reset", $time);
+			taskstop = 1'b0;cyclestart=1'b0;cyclestop=1'b0;
+			cyclecount=0;instrcount=1;
+			$display("\t \t \t Initiating Reset");
 			rst = 1'b0;
 			@(posedge triggerStart);
 			repeat(3) @(posedge clk );
 			rst = 1'b1;
+			cyclestart = 1'b1;
 			$display("Time %t: Reset Done", $time);
-			$monitor("Time %t: Instruction %h performing at %h", $time, iCacheReadData, iCacheReadAddr);
+			//$monitor("Time %t: Instruction %h performing at %h", $time, iCacheReadData, iCacheReadAddr);
+		end
+	endtask
+
+	//; my $count = int(rand(8));
+	int count; logic [31:0] elements [0:`$count`];
+	task randomize_moa();
+		rst = 1'b0;
+		#10;
+		begin
+			count = `$count`;
+			my_dcache.mem[52] = count[7:0];
+			my_dcache.mem[53] = count[15:8];
+			my_dcache.mem[54] = count[23:16];
+			my_dcache.mem[55] = count[31:24];
+			$display("\t count = %d", count);
+			for(int i=0; i<count; i++) begin
+				elements[i] = $urandom()%100;
+				$display("\t elements = %d", elements[i]);
+				my_dcache.mem[(i*4)+56] = elements[i][7:0];	
+				my_dcache.mem[(i*4)+57] = elements[i][15:8];	
+				my_dcache.mem[(i*4)+58] = elements[i][23:16];	
+				my_dcache.mem[(i*4)+59] = elements[i][31:24];	
+			end	
 		end
 	endtask
 
 	task waitforend_moa();
+		logic [31:0] memend;
 		begin
 			@(iCacheReadAddr == `$wl`'h040);
 			repeat(1) @(posedge clk );
-			if(my_dcache.mem[40] === `$wl`'hFFFFDEAD) begin
+			memend[7:0] = my_dcache.mem[40];
+			memend[15:8] = my_dcache.mem[41];
+			memend[23:16] = my_dcache.mem[42];
+			memend[31:24] = my_dcache.mem[43];
+			if(memend[31:0] === `$wl`'hFFFFDEAD) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
+				cyclestop = 1'b1;
 			end
-			else	$display("Time %t: Testcase not completed", $time);			
+			else	$display("Time %t: ERROR - Testcase not completed", $time);			
 		end
 	endtask
 	task passorfail_moa();
+		logic [31:0] sum, mean, memmean;
 		begin
-			if(my_dcache.mem[20] === `$wl`'h2f) begin
+			sum = 0;;
+			for(int i=0; i<count; i++) begin
+				sum+=elements[i];
+				//$display("sum = %h, count = %h", sum, count);
+			end
+			//$display("sum = %h, count = %h", sum, count);
+			mean = sum / count;
+			memmean[7:0] = my_dcache.mem[20];
+			memmean[15:8] = my_dcache.mem[21];
+			memmean[23:16] = my_dcache.mem[22];
+			memmean[31:24] = my_dcache.mem[23];
+			$display("Time %t: Count of elements in the array : %d", $time, count);
+			$display("Time %t: Calculated mean of the array : %d", $time, mean);
+			$display("Time %t: Mips calculated mean of the array : %d", $time, memmean);
+			if(memmean === mean) begin
 				$display("Time %t: Testcase passed", $time);
 			end
 			else begin
-				$display("Time %t: Testcase failed", $time);
+				//$display("mem = %h, mean = %h", my_dcache.mem[20], mean);
+				$display("Time %t: ERROR - Testcase failed", $time);
 			end
 			taskstop = 1'b1;
 		end
 	endtask
 
+	string mainstr, substr;
+	logic verifmatch;
+	task randomize_ssm();
+	//;my $linenum = int(rand(7));
+	//;#my $linenum = 6;
+	//;my @mainstr = ("Hello, World!   ", "Awesome game!!", "Happy Journey", "Blah Blah Blah", "White Space", "", "!@#\$\%^&*()_-+=");
+	//;my @substr = ("World", "Aweful", "Jurney", "blah", "te Sp", "asdasd", "%^&*");
+	//;my $mainlen = length($mainstr[$linenum]);
+	//;my $sublen = length($substr[$linenum]);
+	//;my $mainrev = reverse $mainstr[$linenum];
+	//;my $subrev = reverse $substr[$linenum];
+		int in, line=0, r;
+		logic [`($mainlen*8)-1`:0] mainstrrev;
+		logic [`($sublen*8)-1`:0] substrrev;
+		rst = 1'b0;
+		verifmatch=0;
+		#10;
+		begin
+			
+			mainstrrev = "`$mainrev`"; mainstr = "`$mainstr[$linenum]`";
+			substrrev = "`$subrev`"; substr = "`$substr[$linenum]`";
+			for(int i=0; i<`$mainlen`; i++) begin
+				my_dcache.mem[64+i] = mainstrrev[(i*8)+:8];
+				//$display("mainstr = %h", my_dcache.mem[64+i]);
+			end
+			my_dcache.mem[`$mainlen+64`] = 8'h00;
+			for(int i=0; i<`$sublen`; i++) begin
+				my_dcache.mem[96+i] = substrrev[(i*8)+:8];
+				//$display("substr = %h", my_dcache.mem[96+i]);
+			end	
+			my_dcache.mem[`$sublen+96`] = 8'h00;
+		$display("\t \t \t Main string = %s", mainstr);
+		$display("\t \t \t Substring to match = %s", substr);
+			for(int i=0; i<`$mainlen`;i++) begin
+				if(mainstr.substr(i,i+`$sublen-1`) == substr) begin 
+					verifmatch = 1'b1;
+					break;
+				end
+				else verifmatch = 1'b0;
+			end
+		end
+	endtask
 	task waitforend_ssm();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h60);
@@ -72,22 +196,67 @@
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
+				cyclestop = 1'b1;
 			end
-			else	$display("Time %t: Testcase not completed", $time);			
+			else	$display("Time %t: ERROR - Testcase not completed", $time);			
 		end
 	endtask
 	task passorfail_ssm();
+		logic mipsmatch;
 		begin
 			if(my_dcache.mem[20] == 8'hCE && my_dcache.mem[21] == 8'h0A) begin
 				$display("Time %t: Match found", $time);
+				mipsmatch = 1'b1;
 			end
 			else if (my_dcache.mem[20] == 8'hAD && my_dcache.mem[21] == 8'h0B) begin
 				$display("Time %t: Match not found", $time);
-			end else $display("Time %t: Error - Testcase failed to write to match location", $time);
+				mipsmatch = 1'b0;
+			end else $display("Time %t: ERROR - Testcase failed to write to match location", $time);
+			if(mipsmatch == verifmatch) $display("Time %t: Testcase passed", $time);
+			else begin 
+				$display("Time %t: ERROR - Testcase failed", $time);
+			end
 			taskstop = 1'b1;
 		end
 	endtask
 
+	string lfsstr, lfschar;
+	int verifcount;
+	task randomize_lfs();
+	//;my $linenum = int(rand(7));
+	//;#my $linenum = 6;
+	//;my @lfsstr = ("Hello, World!   ", "Awesome game!!", "Happy Journey", "Blah Blah Blah", "White Space", "", "!@#\$\%^&*()%_-+%=");
+	//;my @lfschar = ("W", "!", "j", "h", " ", "Z", "%");
+	//;my $strlen = length($lfsstr[$linenum]);
+	//;my $strrev = reverse $lfsstr[$linenum];
+	//;my $char = $lfschar[$linenum];
+		int in, line=0, r;
+		logic [`($strlen*8)-1`:0] lfsstrrev;
+		logic [7:0] char0;
+		rst = 1'b0;
+		verifcount=0;
+		#10;
+		begin
+			
+			lfsstrrev = "`$strrev`"; lfsstr = "`$lfsstr[$linenum]`";
+			char0 = "`$char`"; lfschar = "`$char`";
+			for(int i=0; i<`$strlen`; i++) begin
+				my_dcache.mem[64+i] = lfsstrrev[(i*8)+:8];
+				//$display("lfsstr = %h", my_dcache.mem[64+i]);
+			end
+			my_dcache.mem[`$strlen+64`] = 8'h00;
+			my_dcache.mem[96] = char0;
+			//$display("char = %h", my_dcache.mem[96]);
+		$display("\t \t \t Main string = %s", lfsstr);
+		$display("\t \t \t Letter to match = %s", lfschar);
+			for(int i=0; i<`$strlen`;i++) begin
+				if(lfsstr.substr(i,i) == lfschar) begin 
+					verifcount=verifcount+1;
+					//$display("verifcount=%d", verifcount);
+				end
+			end
+		end
+	endtask
 	task waitforend_lfs();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h44);
@@ -95,13 +264,87 @@
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
+				cyclestop = 1'b1;
 			end
-			else	$display("Time %t: Testcase not completed", $time);			
+			else	$display("Time %t: ERROR - Testcase not completed", $time);			
 		end
 	endtask
 	task lettercount_lfs();
 		begin
-			$display("Time %t: Letter frequency = %h", $time, my_dcache.mem[20]);
+			$display("Time %t: Verif calculated letter frequency = %d", $time, verifcount);
+			$display("Time %t: Mips calculated letter frequency = %d", $time, my_dcache.mem[20]);
+			if(my_dcache.mem[20] == verifcount) begin
+				$display("Time %t: Testcase passed", $time);
+			end else $display("Time %t: ERROR - Testcase failed", $time);
+			taskstop = 1'b1;
+		end
+	endtask
+
+	//;my $linenum = int(rand(7));
+	//;#my $linenum = 6;
+	//;my @mainstr = ("Hello, World!   ", "Awesome game!!", "Happy Journey", "Blah Blah Blah", "White Space", "", "!@#\$\%^&*()%_-+%=");
+	//;my $mainlen = length($mainstr[$linenum]);
+	//;my $mainrev = reverse $mainstr[$linenum];	
+	task randomize_scp();
+		int in, line=0, r;
+		logic [`($mainlen*8)-1`:0] mainstrrev;
+		rst = 1'b0;
+		verifmatch=0;
+		#10;
+		begin
+			
+			mainstrrev = "`$mainrev`"; mainstr = "`$mainstr[$linenum]`";
+			for(int i=0; i<`$mainlen`; i++) begin
+				my_dcache.mem[64+i] = mainstrrev[(i*8)+:8];
+				//$display("mainstr = %h", my_dcache.mem[64+i]);
+			end
+			my_dcache.mem[`$mainlen+64`] = 8'h00;
+			for(int i=0; i<`$mainlen`; i++) begin
+				my_dcache.mem[96+i] = 8'hAA;
+			end
+		$display("\t \t \t String to copy = %s", mainstr);
+		end
+	endtask
+	task waitforend_scp();
+		begin
+			@(iCacheReadAddr[7:0] == 8'h2c);
+			repeat(1) @(posedge clk );
+			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
+				$display("Time %t: Testcase Done", $time);
+				$monitoroff;
+				cyclestop = 1'b1;
+			end
+			else	$display("Time %t: ERROR - Testcase not completed", $time);			
+		end
+	endtask
+	task passorfail_scp();
+		logic mipsmatch;
+		int matchcount=0, mismatchcount=0;
+		logic [`($mainlen*8)-1`:0] memstr;
+		begin
+			for(int i=0; i<mainstr.len(); i++) begin
+				//$display("mem str = %h", my_dcache.mem[96+i]);
+				//$display("main str = %h", mainstr[i]);
+				memstr[(i*8)+:8] = my_dcache.mem[(96+mainstr.len())-i-1];
+				//$display("mem str = %h", memstr[i]);
+				if(mainstr[i] == my_dcache.mem[96+i]) begin
+					matchcount=matchcount+1;
+				end
+				else begin
+					mismatchcount=mismatchcount+1;
+				end
+				//$display("mainstr = %h", my_dcache.mem[64+i]);
+			end
+			$display("Time %t: Copied string : %s", $time, memstr);
+			if(mismatchcount>0) begin
+				$display("Time %t: ERROR - Mismatch in the string copied", $time);
+				$display("Time %t: ERROR - Testcase failed", $time);
+			end
+			if(matchcount != mainstr.len()) begin
+				$display("Time %t: ERROR - Not all bytes are copied from the string", $time);
+				$display("Time %t: ERROR - Testcase failed", $time);
+				end
+			else $display("Time %t: Testcase passed", $time);
 			taskstop = 1'b1;
 		end
 	endtask

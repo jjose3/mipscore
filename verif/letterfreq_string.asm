@@ -7,12 +7,10 @@ getchar:
 	addi $a1, $zero, 96	; character address
 	
 getbytechar:
-	lw $s1, 0($a1)
-	andi $s1, $s1, 255
+	lb $s1, 0($a1)
 
 getbytemain:
-	lw $s0, 0($a0)		; load main string
-	andi $s0, $s0, 255
+	lb $s0, 0($a0)		; load main string
 
 compare: 
 	beq $s0, $zero, endofstring

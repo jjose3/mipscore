@@ -6,12 +6,10 @@ getsubstring:
 	addi $a1, $zero, 96	; sub string address
 	
 getwordmain:
-	lw $s0, 0($a0)		; load main string
-	andi $s0, $s0, 00ff
+	lb $s0, 0($a0)		; load main string
 	
 getwordsub:
-	lw $s1, 0($a1)
-	andi $s1, $s1, 00ff
+	lb $s1, 0($a1)
 
 compare: 
 	beq $s1, $zero, matchfound
