@@ -1,5 +1,13 @@
 // tasks.vph
 
+	task testcase_mult();
+		begin
+		initialize();
+		repeat(60) @(posedge clk);
+		taskstop = 1'b1;
+		end
+	endtask
+
 	task testcase_moa();
 		
 		begin
@@ -80,7 +88,7 @@
 	endtask
 
 	//; my $count = int(rand(8));
-	int count; logic [31:0] elements [0:`$count`];
+	int count; logic signed [31:0] elements [0:`$count`];
 	task randomize_moa();
 		rst = 1'b0;
 		#10;
@@ -92,7 +100,7 @@
 			my_dcache.mem[55] = count[31:24];
 			$display("\t count = %d", count);
 			for(int i=0; i<count; i++) begin
-				elements[i] = $urandom()%100;
+				elements[i] = $random()%100;
 				$display("\t elements = %d", elements[i]);
 				my_dcache.mem[(i*4)+56] = elements[i][7:0];	
 				my_dcache.mem[(i*4)+57] = elements[i][15:8];	
@@ -106,7 +114,7 @@
 		logic [31:0] memend;
 		begin
 			@(iCacheReadAddr == `$wl`'h040);
-			repeat(1) @(posedge clk );
+			repeat(6) @(posedge clk );
 			memend[7:0] = my_dcache.mem[40];
 			memend[15:8] = my_dcache.mem[41];
 			memend[23:16] = my_dcache.mem[42];
@@ -120,7 +128,7 @@
 		end
 	endtask
 	task passorfail_moa();
-		logic [31:0] sum, mean, memmean;
+		logic signed [31:0] sum, mean, memmean;
 		begin
 			sum = 0;;
 			for(int i=0; i<count; i++) begin
@@ -134,8 +142,8 @@
 			memmean[23:16] = my_dcache.mem[22];
 			memmean[31:24] = my_dcache.mem[23];
 			$display("Time %t: Count of elements in the array : %d", $time, count);
-			$display("Time %t: Calculated mean of the array : %d", $time, mean);
-			$display("Time %t: Mips calculated mean of the array : %d", $time, memmean);
+			$display("Time %t: Calculated mean of the array : %d", $time, $signed(mean));
+			$display("Time %t: Mips calculated mean of the array : %d", $time, $signed(memmean));
 			if(memmean === mean) begin
 				$display("Time %t: Testcase passed", $time);
 			end
@@ -153,6 +161,7 @@
 	//;my $linenum = int(rand(7));
 	//;#my $linenum = 6;
 	//;my @mainstr = ("Hello, World!   ", "Awesome game!!", "Happy Journey", "Blah Blah Blah", "White Space", "", "!@#\$\%^&*()_-+=");
+	//TODO: Add more strings
 	//;my @substr = ("World", "Aweful", "Jurney", "blah", "te Sp", "asdasd", "%^&*");
 	//;my $mainlen = length($mainstr[$linenum]);
 	//;my $sublen = length($substr[$linenum]);
@@ -192,7 +201,7 @@
 	task waitforend_ssm();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h60);
-			repeat(1) @(posedge clk );
+			repeat(6) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
@@ -260,7 +269,7 @@
 	task waitforend_lfs();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h44);
-			repeat(1) @(posedge clk );
+			repeat(6) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
@@ -299,16 +308,13 @@
 				//$display("mainstr = %h", my_dcache.mem[64+i]);
 			end
 			my_dcache.mem[`$mainlen+64`] = 8'h00;
-			for(int i=0; i<`$mainlen`; i++) begin
-				my_dcache.mem[96+i] = 8'hAA;
-			end
 		$display("\t \t \t String to copy = %s", mainstr);
 		end
 	endtask
 	task waitforend_scp();
 		begin
-			@(iCacheReadAddr[7:0] == 8'h2c);
-			repeat(1) @(posedge clk );
+			@(iCacheReadAddr[7:0] == 8'h70);
+			repeat(6) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;

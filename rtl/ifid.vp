@@ -1,0 +1,31 @@
+// ifid.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic clear,
+input logic hold,
+input logic [`$bW-1`:0] pcplus4,
+input logic [`$bW-1`:0] pcplus8,
+input logic [`$bW-1`:0] instr,
+output logic [`$bW-1`:0] opcplus4,
+output logic [`$bW-1`:0] opcplus8,
+output logic [`$bW-1`:0] oinstr);
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_PCPLUS4".$i);
+`$pipeline->instantiate()` ( .din(pcplus4[`$i`]), .clk, .hold, .clear, .rst, .q(opcplus4[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_PCPLUS8".$i);
+`$pipeline->instantiate()` ( .din(pcplus8[`$i`]), .clk, .hold, .clear, .rst, .q(opcplus8[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_INSTR".$i);
+`$pipeline->instantiate()` ( .din(instr[`$i`]), .clk, .hold, .clear, .rst, .q(oinstr[`$i`]) );
+//; }
+
+endmodule: `mname`

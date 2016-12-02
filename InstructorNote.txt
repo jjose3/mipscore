@@ -1,0 +1,6 @@
+
+
+Remove:
+
+rtl/HelloWorld.vp
+verif/top_HelloWorld.vp

@@ -1,0 +1,58 @@
+// memwb.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic [`$bW-1`:0] alu_o,
+output logic [`$bW-1`:0] oalu_o,
+input logic link,
+output logic olink,
+input logic [`$bW-1`:0] pcplus8,
+output logic [`$bW-1`:0] opcplus8,
+input logic memtoreg,
+output logic omemtoreg,
+input logic [`$rA-1`:0] regWrAddr,
+output logic [`$rA-1`:0] oregWrAddr,
+input logic [`$bW-1`:0] memRdByteWord,
+output logic [`$bW-1`:0] omemRdByteWord,
+input logic regWrEn,
+output logic oregWrEn
+);
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_ALUO".$i);
+`$dff->instantiate()` ( .din(alu_o[`$i`]), .clk, .rst, .q(oalu_o[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_LINK".$i);
+`$dff->instantiate()` ( .din(link[`$i`]), .clk, .rst, .q(olink[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PCPLUS8".$i);
+`$dff->instantiate()` ( .din(pcplus8[`$i`]), .clk, .rst, .q(opcplus8[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_MEMTOREG".$i);
+`$dff->instantiate()` ( .din(memtoreg[`$i`]), .clk, .rst, .q(omemtoreg[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $rA ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_REGWRADDR".$i);
+`$dff->instantiate()` ( .din(regWrAddr[`$i`]), .clk, .rst, .q(oregWrAddr[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_MEMRDBYTEWORD".$i);
+`$dff->instantiate()` ( .din(memRdByteWord[`$i`]), .clk, .rst, .q(omemRdByteWord[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_REGWREN".$i);
+`$dff->instantiate()` ( .din(regWrEn[`$i`]), .clk, .rst, .q(oregWrEn[`$i`]) );
+//; }
+
+endmodule: `mname`

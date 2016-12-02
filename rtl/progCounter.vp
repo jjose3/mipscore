@@ -4,13 +4,15 @@ module `mname` (
 input logic [`$bW-1`:0] pcNxt,
 input logic rst,
 input logic clk,
+input logic clear,
+input logic hold,
 output logic [`$bW-1`:0] pc
 );
 
 
 //; for( my $i = 0 ; $i < $bW ; $i++ ){
-//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PC".$i);
-`$dff->instantiate()` ( .din(pcNxt[`$i`]), .clk, .rst, .q(pc[`$i`]) );
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_PC".$i);
+`$pipeline->instantiate()` ( .din(pcNxt[`$i`]), .clk, .rst, .hold, .clear, .q(pc[`$i`]) );
 //; }
 
 // TODO: Add assertion for pc overflow

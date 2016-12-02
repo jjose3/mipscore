@@ -97,6 +97,7 @@ module `mname` ();
 		else if(testname == "SSM") testcase_ssm();
 		else if(testname == "LFS") testcase_lfs();
 		else if(testname == "SCP") testcase_scp();
+		else if(testname == "MULT") testcase_mult();
 		else $fatal("FATAL ERROR - TESTNAME not found");
         end else begin
             $fatal("FATAL ERROR - TESTNAME not provided") ;

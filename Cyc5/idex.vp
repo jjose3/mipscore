@@ -1,0 +1,132 @@
+// idex.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic [5:0] muxfunc,
+output logic [5:0] omuxfunc,
+input logic memRdEn,
+output logic omemRdEn,
+input logic memWrEn,
+output logic omemWrEn,
+input logic [`$bW-1`:0] src0,
+output logic [`$bW-1`:0] osrc0,
+input logic [`$bW-1`:0] src1,
+output logic [`$bW-1`:0] osrc1,
+input logic regWrEn,
+output logic oregWrEn,
+input logic [`$bW-1`:0] regWrAddr,
+output logic [`$bW-1`:0] oregWrAddr,
+input logic [`$bW-1`:0] pcplus4,
+output logic [`$bW-1`:0] opcplus4,
+input logic [`$bW-1`:0] pcplusimm,
+output logic [`$bW-1`:0] opcplusimm,
+input logic [`$bW-1`:0] jmpaddr,
+output logic [`$bW-1`:0] ojmpaddr,
+input logic [`$bW-1`:0] alu_a,
+output logic [`$bW-1`:0] oalu_a,
+input logic [`$bW-1`:0] alu_b,
+output logic [`$bW-1`:0] oalu_b,
+input logic [1:0] aluop,
+output logic [1:0] oaluop,
+input logic bne,
+output logic obne,
+input logic bgtz,
+output logic obgtz,
+input logic beq,
+ouput logic obeq,
+input logic jmp,
+output logic ojmp,
+input logic jmpreg,
+output logic ojmpreg,
+input logic memtoreg,
+output logic omemtoreg
+);
+
+//; for( my $i = 0 ; $i < 5 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_MUXFUNC".$i);
+`$dff->instantiate()` ( .din(muxfunc[`$i`]), .clk, .rst, .q(omuxfunc[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_MEMRDEN".$i);
+`$dff->instantiate()` ( .din(memRdEn[`$i`]), .clk, .rst, .q(omemRdEn[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_MEMWREN".$i);
+`$dff->instantiate()` ( .din(memWrEn[`$i`]), .clk, .rst, .q(omemWrEn[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_SRC0".$i);
+`$dff->instantiate()` ( .din(src0[`$i`]), .clk, .rst, .q(osrc0[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_SRC1".$i);
+`$dff->instantiate()` ( .din(src1[`$i`]), .clk, .rst, .q(osrc1[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_REGWREN".$i);
+`$dff->instantiate()` ( .din(regWrEn[`$i`]), .clk, .rst, .q(oregWrEn[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_REGWRADDR".$i);
+`$dff->instantiate()` ( .din(regWrAddr[`$i`]), .clk, .rst, .q(oregWrAddr[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PCPLUS4".$i);
+`$dff->instantiate()` ( .din(pcplus4[`$i`]), .clk, .rst, .q(opcplus4[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PCPLUSIMM".$i);
+`$dff->instantiate()` ( .din(pcplusimm[`$i`]), .clk, .rst, .q(opcplusimm[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_JMPADDR".$i);
+`$dff->instantiate()` ( .din(jmpaddr[`$i`]), .clk, .rst, .q(ojmpaddr[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_ALUA".$i);
+`$dff->instantiate()` ( .din(alu_a[`$i`]), .clk, .rst, .q(oalu_a[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_ALUB".$i);
+`$dff->instantiate()` ( .din(alu_b[`$i`]), .clk, .rst, .q(oalu_b[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 2 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_ALUOP".$i);
+`$dff->instantiate()` ( .din(aluop[`$i`]), .clk, .rst, .q(oaluop[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_BNE".$i);
+`$dff->instantiate()` ( .din(bne[`$i`]), .clk, .rst, .q(obne[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_BGTZ".$i);
+`$dff->instantiate()` ( .din(bgtz[`$i`]), .clk, .rst, .q(obgtz[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_BEQ".$i);
+`$dff->instantiate()` ( .din(beq[`$i`]), .clk, .rst, .q(obeq[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_JMP".$i);
+`$dff->instantiate()` ( .din(jmp[`$i`]), .clk, .rst, .q(ojmp[`$i`]) );
+//; }
+
+endmodule: `mname`

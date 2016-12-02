@@ -1,0 +1,23 @@
+// ifid.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic [`$bW-1`:0] pcplus4,
+input logic [`$bW-1`:0] instr,
+output logic [`$bW-1`:0] opcplus4,
+output logic [`$bW-1`:0] oinstr);
+
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PCPLUS4".$i);
+`$dff->instantiate()` ( .din(pcplus4[`$i`]), .clk, .rst, .q(opcplus4[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PCPLUS4".$i);
+`$dff->instantiate()` ( .din(instr[`$i`]), .clk, .rst, .q(oinstr[`$i`]) );
+//; }
+
+endmodule: `mname`

@@ -1,0 +1,18 @@
+// progCounter.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+module `mname` (
+input logic [`$bW-1`:0] pcNxt,
+input logic rst,
+input logic clk,
+output logic [`$bW-1`:0] pc
+);
+
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $dff = generate_base( "dff" , "D_FLIP_FLOP_PC".$i);
+`$dff->instantiate()` ( .din(pcNxt[`$i`]), .clk, .rst, .q(pc[`$i`]) );
+//; }
+
+// TODO: Add assertion for pc overflow
+
+endmodule: `mname`

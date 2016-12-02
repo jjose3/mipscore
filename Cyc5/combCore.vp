@@ -1,0 +1,132 @@
+// combCore.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic [`$bW-1`:0] instr,
+input logic [`$bW-1`:0] pc,
+input logic [`$bW-1`:0] src0,
+input logic [`$bW-1`:0] src1,
+input logic [`$bW-1`:0] memRdData,
+output logic [`$bW-1`:0] memRdAddr,
+output logic memRdEn,
+output logic [`$bW-1`:0] memWrData ,
+output logic [`$bW-1`:0] memWrAddr,
+output logic memWrEn ,
+output logic regWrEn,
+output logic [`$rA-1`:0] regWrAddr,
+output logic [`$rA-1`:0] srcAddr0 ,
+output logic srcRdEn0 ,
+output logic [`$rA-1`:0] srcAddr1 ,
+output logic srcRdEn1 ,
+output logic [`$bW-1`:0] dst0,
+output logic [`$bW-1`:0] pcNxt
+);
+
+logic [5:0] op_s2; //opcode 
+logic [4:0] rs_s2; //register s r-type
+logic [4:0] rt_s2; // register t r-type
+logic [4:0] rd_s2; // register d r-type
+logic [4:0] shmt_s2; //shift amount r-type
+logic [4:0] shmt_s3; //shift amount r-type
+logic [5:0] fn_s2; //function - r-type
+logic [5:0] mfn_s2; //function created for I-type
+logic [5:0] muxfunc_s2; //muxed function
+logic [5:0] muxfunc_s3; //muxed function
+logic [`$bW-1`:0] simm_s2; //sign ext immediate for i-type
+logic [25:0] offs_s2; //offset for j-type
+
+logic [`$bW-1`:0] pcNxt_s3, pcNxt_s4;
+
+logic memRdEn_s2, memRdEn_s3, memRdEn_s4, memWrEn_s2, memWrEn_s3, memWrEn_s4;
+logic [`$bW-1`:0] src0_s3, src0_s2, src1_s4, src1_s3, src1_s2;
+
+logic regWrEn_s2, regWrEn_s3, regWrEn_s4, regWrEn_s5, srcRdEn0_s2, srcRdEn1_s2;
+logic [`$rA-1`:0] regWrAddr_s2, regWrAddr_s3, regWrAddr_s4, regWrAddr_s5;
+logic [`$bW-1`:0] memRdData_s4, memRdData_s5, memRdAddr_s4;
+
+logic [`$bW-1`:0] pcplus4_s1;
+logic [`$bW-1`:0] pcplus4_s2;
+logic [`$bW-1`:0] pcplus4_s3;
+logic [`$bW-1`:0] pcplusimm_s2;
+logic [`$bW-1`:0] pcplusimm_s3;
+logic [`$bW-1`:0] jmpaddr_s2;
+logic [`$bW-1`:0] jmpaddr_s3;
+logic [`$bW-1`:0] alu_o_s3, alu_o_s4, alu_o_s5, alu_a_s2, alu_b_s2, alu_a_s3, alu_b_s3;
+
+logic [3:0] aluctl_s3;  
+logic [1:0] aluop_s2;  
+logic [1:0] aluop_s3;  
+logic bne_s2, bgtz_s2, beq_s2, bne_s3, bgtz_s3, beq_s3, zero_s3, gtz_s3, branch_s3, jmp_s2, jmpreg_s2, jmp_s3, jmpreg_s3, alusrc_s2, aluimm_s2, memtoreg_s2, memtoreg_s3, memtoreg_s4, memtoreg_s5, regdst_s2; 
+
+assign op_s2 = instr_s2[31:26];
+assign rs_s2 = instr_s2[25:21];
+assign rt_s2 = instr_s2[20:16];
+assign rd_s2 = instr_s2[15:11];
+assign shmt_s2 = instr_s2[10:6];
+assign fn_s2 = instr_s2[5:0];
+assign simm_s2 = {{16{instr_s2[15]}}, instr_s2[15:0]};
+assign offs_s2 = instr_s2[25:0];
+
+assign srcAddr0 = rs_s2;
+assign srcAddr1 = rt_s2;
+assign srcRdEn0 = srcRdEn0_s2;
+assign srcRdEn1 = srcRdEn1_s2;
+
+assign pcplus4_s1 = pc + `$bW`'d4;
+assign pcplusimm_s2 = pcplus4_s2 + {simm_s2[`$bW-3`:0], 2'b0};
+assign jmpaddr_s2 = {pcplus4_s2[31:28], offs_s2[25:0], 2'b0};
+
+assign branch_s3 = (bgtz_s3 && gtz_s3) || (bne_s3 && ~zero_s3) || (beq_s3 && zero_s3);
+
+always_comb begin
+	unique case({jmp_s3, jmpreg_s3, branch_s3})
+		3'b001:	   pcNxt_s3 = pcplusimm_s3;
+		3'b010:    pcNxt_s3 = src0_s3;
+		3'b100:    pcNxt_s3 = jmpaddr_s3; 
+		default:   pcNxt_s3 = pcplus4_s3;
+	endcase
+end
+
+assign pcNxt = pcNxt_s4;
+
+assign src0_s2 = src0;
+assign alu_b_s2 = alusrc_s2 ? simm_s2 : src1_s2;
+assign alu_a_s2 = src0_s2;
+assign muxfunc_s2 = aluimm_s2 ? mfn_s2 : fn_s2;
+
+assign memWrAddr_s4 = alu_o_s4;
+assign memRdAddr_s4 = alu_o_s4;
+assign memWrData_s4 = src1_s4;
+
+assign memRdAddr = memRdAddr_s4;
+assign memWrAddr = memWrAddr_s4;
+assign memRdEn = memRdEn_s4;
+assign memWrEn = memWrEn_s4;
+assign memWrData = memWrData_s4;
+assign memRdData_s4 = memRdData;
+
+assign regWrEn = regWrEn_s5;
+assign regWrAddr = regWrAddr_s5;
+assign dst0 = dst0_s5;
+assign dst0_s5 = memtoreg_s5 ? memRdData_s5 : alu_o_s5;
+assign regWrAddr_s2 = regdst_s2 ? rd_s2 : rt_s2;
+
+assign instr_s1 = instr;
+// Pipelines
+
+//; my $ifid = generate_base("ifid", "IFID");
+`$ifid->instantiate()`(.pcplus4(pcplus4_s1), .instr(instr_s1), .opcplus4(pcplus4_s2), oinstr(instr_s2));
+
+// Instantiations
+
+//;  my $ctl = generate_base( "ctl" , "CPU_CTL");
+`$ctl->instantiate()`(.op(op_s2), .func(fn_s2), .mfunc(mfn_s2), .beq(beq_s2), .bne(bne_s2), .bgtz(bgtz_s2), .aluop(aluop_s2), .aluimm(aluimm_s2), .memrden(memRdEn_s2), .memwren(memWrEn_s2), .memtoreg(memtoreg_s2), .regdst(regdst_s2), .regwren(regWrEn_s2), .alusrc(alusrc_s2), .srcrden0(srcRdEn0_s2), .srcrden1(srcRdEn1_s2), .jmpreg(jmpreg_s2), .jmp(jmp_s2));
+
+//; my $aluctl = generate_base("aluctl", "ALU_CTL");
+`$aluctl->instantiate()`(.func(muxfunc_s3), .aluop(aluop_s3), .aluctl(aluctl_s3));
+
+//; my $alu = generate_base("alu", "ALU");
+`$alu->instantiate()`(.clk, .rst, .ctl(aluctl_s3), .a(alu_a_s3), .b(alu_b_s3), .shmt(shmt_s3), .out(alu_o_s3), .gtz(gtz_s3), .zero(zero_s3));
+endmodule: `mname`

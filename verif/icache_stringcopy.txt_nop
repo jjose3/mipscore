@@ -1,0 +1,58 @@
+@00000000
+20040040 	// 	[ addi $a0 $zero 64  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000040)]
+@00000004
+20050060 	// 	[ addi $a1 $zero 96  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000060)]
+@00000008
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000000c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000010
+80900000 	// 	[ lb $s0 0($a0)  => I(op:32(lb) rs:4(a0) rt:16(s0) immed:0x00000000)]
+@00000014
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000018
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000001c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000020
+1200000c 	// 	[ beq $s0 $zero quit  => I(op:4(beq) rs:16(s0) rt:0(zero) immed:0x0000000c)]
+@00000024
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000028
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000002c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000030
+a0b00000 	// 	[ sb $s0 0($a1)  => I(op:40(sb) rs:5(a1) rt:16(s0) immed:0x00000000)]
+@00000034
+20840001 	// 	[ addi $a0 $a0 1  => I(op:8(addi) rs:4(a0) rt:4(a0) immed:0x00000001)]
+@00000038
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000003c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000040
+20a50001 	// 	[ addi $a1 $a1 1  => I(op:8(addi) rs:5(a1) rt:5(a1) immed:0x00000001)]
+@00000044
+08000002 	// 	[ j getbytemain  => JFormat(op:2(j) target:0x00000008 >> 2 = 0x00000002)]
+@00000048
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000004c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000050
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000054
+200a0028 	// 	[ addi $t2 $zero 40  => I(op:8(addi) rs:0(zero) rt:10(t2) immed:0x00000028)]
+@00000058
+200bdead 	// 	[ addi $t3 $zero 57005  => I(op:8(addi) rs:0(zero) rt:11(t3) immed:0x0000dead)]
+@0000005c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000060
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000064
+ad4b0000 	// 	[ sw $t3 0($t2) => I(op:43(sw) rs:10(t2) rt:11(t3) immed:0x00000000)]
+@00000068
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000006c
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000070
+20000000 	// 	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]

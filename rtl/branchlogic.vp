@@ -1,0 +1,15 @@
+// branchlogic.vp
+module `mname` (
+		input  logic [31:0] a, b,
+		output logic 	    gtz,
+		output logic 	    gez,
+		output logic 	    zero);
+
+	logic [31:0] sub_ab;
+
+	assign zero = (0 == sub_ab);
+	assign gtz  = a[31] ? 0 : (|a[31:0]); 
+	assign gez  = a[31] ? 0 : 1;
+	assign sub_ab = a - b;
+
+endmodule: `mname`  

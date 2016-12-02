@@ -36,7 +36,7 @@ module `mname`(
 	// During a write, avoid the one cycle delay by reading from 'dCacheWriteData'
 
 	initial begin
-		//$readmemh("verif/dcache_load.txt", mem, 0, 255);
+		$readmemh("verif/dcache_load.txt", mem, 0, 255);
 	end
 
 	final begin

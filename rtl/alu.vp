@@ -7,7 +7,6 @@ module `mname` (
 		input  logic [4:0]  shmt,
 		output logic [31:0] out,
 		output logic 	    gtz,
-		output logic 	    gez,
 		output logic 	    zero);
 
 	logic [31:0] sub_ab;
@@ -26,7 +25,6 @@ module `mname` (
 
 	assign zero = (0 == out);
 	assign gtz  = a[31] ? 0 : (|a[31:0]); 
-	assign gez  = a[31] ? 0 : 1; 
 
 	assign sub_ab = a - b;
 	assign add_ab = a + b;
@@ -48,8 +46,9 @@ module `mname` (
 			5'd0:  		out = a & b;				/* and */
 			5'd1:  		out = a | b;				/* or */
 			5'd2:  		out = add_ab;				/* add */
-			5'd3:  		begin HInxt = a%b; LOnxt = a/b; out = 0; end	/* div */
-			5'd4:		begin mult = a*b; HInxt = mult[63:32]; LOnxt = mult[31:0]; out = 0; end	/* mult */
+			5'd3:  		begin HInxt = $signed(a)%$signed(b); LOnxt = $signed(a)/$signed(b); out = 0; end	/* div */
+			//5'd3:  		begin HInxt = a%b; LOnxt = a/b; out = 0; end	/* div */
+			5'd4:		begin mult = $signed(a)*$signed(b); HInxt = mult[63:32]; LOnxt = mult[31:0]; out = 0; end	/* mult */
 			5'd5:		out = b << shmt;			/* sll */
 			5'd6:  		out = sub_ab;				/* sub */
 			5'd7:  		out = {{31{1'b0}}, slt};		/* slt */
@@ -68,7 +67,7 @@ module `mname` (
 		endcase
 	end
 
-assign regen = (ctl == 5'd3);
+assign regen = (ctl == 5'd3 || ctl == 5'd4);
 //; for( my $i = 0 ; $i < 32 ; $i++ ){
 //;  my $dff = generate_base( "dffen" , "D_FLIP_FLOP_HI".$i);
 `$dff->instantiate()` ( .din(HInxt[`$i`]), .en(regen), .clk, .rst, .q(HI[`$i`]) );

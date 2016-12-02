@@ -1,0 +1,30 @@
+// dffen.vp
+//; my $bW = parameter(Name=>"BitWidth", Val=>1);
+module `mname` (
+input logic [`$bW-1`:0] din,
+input logic clk,
+input logic rst,
+input logic en,
+output logic [`$bW-1`:0] q
+);
+
+  /* synopsys dc_tcl_script_begin
+   set_dont_retime [current_design] true
+   set_optimize_registers false -design [current_design]
+  */
+
+          logic rst_val;
+          assign rst_val = `$bW`'b0  ;
+	  logic data_en ;
+          assign data_en = en ;
+
+          logic [`$bW-1`:0] q_val;
+          logic [`$bW-1`:0] d;
+
+          assign    d = din ; // Delay data in to prevent inf. loops
+          assign    q = q_val ;
+
+          always @ (posedge clk or negedge rst ) begin  //Latches on RST or CLK
+             q_val <= (!rst) ? rst_val : (data_en ? d : q) ;
+          end
+endmodule: `mname`

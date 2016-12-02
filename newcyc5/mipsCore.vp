@@ -1,0 +1,62 @@
+// mipsCore.vp
+//; my $wl = parameter( name=>"wordLength", val=>32, doc=>"Width of input" );
+//; my $iW = parameter( name=>"issueWidth", val=>1, doc=>"Number of fetched instructions" );
+//; my $rP = parameter( name=>"rfReadPorts", val=>2, doc=>"Number of RF read ports" );
+//; my $wP = parameter( name=>"rfWritePorts", val=>1, doc=>"Number of RF write ports" );
+//; my $rC = parameter( name=>"rfEntryCount", val=>32, max=>128, doc=>"Number of RF addresses");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+//; my $btb = parameter( name=>"enableBTB", val=>0, list=>[0,1], doc=>"Enable BTB");
+//; my $btbW = parameter( name=>"entrySizeBTB", val=>34, max=>36, doc=>"BTB entry size");
+//; my $btbC = parameter( name=>"entryCountBTB", val=>0, max=>256, doc=>"BTB entries");
+//; my $mD = parameter( name=>"MipsMode", val=>"Cyc1", list=>["Cyc1","Cyc5","Smpl5","Fwd5","Dual"], doc=>"Iterative design state, testbench will ignore" );
+
+module `mname` (
+//ICache Ifc
+input logic [`$iW*$wl-1`:0] iCacheReadData,
+output logic [`$wl-1`:0] iCacheReadAddr,
+//DCache Ifc
+input logic [`$wl-1`:0] dCacheReadData,
+output logic [`$wl-1`:0] dCacheWriteData,
+output logic [`$wl-1`:0] dCacheAddr,
+output logic dCacheWriteEn,
+output logic dCacheReadEn,
+//Register File Ifc
+//; for( my $i = 0 ; $i < $rP ; $i++ ){
+input logic [`$wl-1`:0] rfReadData_p`$i`,
+output logic [`$rA-1`:0] rfReadAddr_p`$i`,
+output logic rfReadEn_p`$i`,
+//; }
+//; for( my $i = 0 ; $i < $wP ; $i++ ){
+output logic [`$wl-1`:0] rfWriteData_p`$i`,
+output logic [`$rA-1`:0] rfWriteAddr_p`$i`,
+output logic rfWriteEn_p`$i`,
+//; }
+//BTB Ifc
+//; if( $btb ){
+input logic [`$btbW-1`:0] btbReadData,
+output logic [`$btbW-1`:0] btbWriteData,
+output logic [`$wl-1`:0] btbWriteAddr,
+output logic [`$wl-1`:0] btbReadAddr,
+output logic btbWriteEn,
+output logic btbReadEn,
+//; }
+// Globals
+input logic clk,
+input logic rst
+);
+
+logic [`$wl-1`:0] pc, pcNxt, instr, memrdaddr, memwraddr;
+
+assign iCacheReadAddr = pc;
+assign instr = iCacheReadData;
+
+assign dCacheAddr = dCacheReadEn ? memrdaddr : memwraddr; 
+
+// Instantiations
+
+//; my $pc = generate_base("progCounter", "PROG_COUNTER");
+`$pc->instantiate()`(.pc(pc), .pcNxt(pcNxt), .rst(rst), .clk(clk));
+
+//; my $ccore = generate_base( "combCore", "COMB_CORE");
+`$ccore->instantiate()`(.clk, .rst, .instr(instr), .pc(pc), .src0(rfReadData_p0), .src1(rfReadData_p1), .memRdData(dCacheReadData), .memRdAddr(memrdaddr), .memRdEn(dCacheReadEn), .memWrData(dCacheWriteData), .memWrAddr(memwraddr), .memWrEn(dCacheWriteEn), .regWrEn(rfWriteEn_p0), .regWrAddr(rfWriteAddr_p0), .srcAddr0(rfReadAddr_p0) , .srcRdEn0(rfReadEn_p0) , .srcAddr1(rfReadAddr_p1) , .srcRdEn1(rfReadEn_p1) , .dst0(rfWriteData_p0), .pcNxt(pcNxt));
+endmodule: `mname`

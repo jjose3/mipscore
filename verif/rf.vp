@@ -70,6 +70,9 @@ module `mname`(
 		$writememh("verif/regfile_data.txt", mem, 0, 31);
 	end
 
+	initial begin
+		$readmemh("verif/regfile_clean.txt", mem, 0, 31);
+	end
 
-	assert property (@(posedge clk) (rfWriteEn_p0 && (rfWriteAddr_p0 == `$rA`'d0)) |-> (rfWriteData_p0 == `$wl`'d0));
+	//assert property (@(posedge clk) (rfWriteEn_p0 && (rfWriteAddr_p0 == `$rA`'d0)) |-> (rfWriteData_p0 == `$wl`'d0));
 endmodule: `mname`

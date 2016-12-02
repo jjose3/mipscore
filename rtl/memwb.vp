@@ -1,0 +1,82 @@
+// memwb.vp
+//; my $bW = parameter( name=>"bitWidth", val=>32, doc=>"Width of input");
+//; my $rA = parameter( name=>"rfAddressWidth", val=>5, max=>7 , doc=>"Bits for RF address" );
+//; my $bit = parameter( name=>"BitLength", val=>1 , doc=>"Bit Length" );
+module `mname` (
+input logic clk,
+input logic rst,
+input logic hold,
+input logic clear,
+input logic [`$bW-1`:0] alu_o,
+output logic [`$bW-1`:0] oalu_o,
+input logic [`$bit-1`:0] link,
+output logic [`$bit-1`:0] olink,
+input logic [`$bW-1`:0] pcplus8,
+output logic [`$bW-1`:0] opcplus8,
+input logic [`$bit-1`:0] memtoreg,
+output logic [`$bit-1`:0] omemtoreg,
+input logic [`$rA-1`:0] regWrAddr,
+output logic [`$rA-1`:0] oregWrAddr,
+input logic [`$bW-1`:0] memRdByteWord,
+output logic [`$bW-1`:0] omemRdByteWord,
+input logic [`$bit-1`:0] regWrEn,
+output logic [`$bit-1`:0] oregWrEn,
+input logic [4:0] rs,
+input logic [4:0] rd,
+input logic [4:0] rt,
+output logic [4:0] ors,
+output logic [4:0] ord,
+output logic [4:0] ort
+);
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_ALUO".$i);
+`$pipeline->instantiate()` ( .din(alu_o[`$i`]), .clk, .hold, .clear, .rst, .q(oalu_o[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_LINK".$i);
+`$pipeline->instantiate()` ( .din(link[`$i`]), .clk, .hold, .clear, .rst, .q(olink[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_PCPLUS8".$i);
+`$pipeline->instantiate()` ( .din(pcplus8[`$i`]), .clk, .hold, .clear, .rst, .q(opcplus8[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_MEMTOREG".$i);
+`$pipeline->instantiate()` ( .din(memtoreg[`$i`]), .clk, .hold, .clear, .rst, .q(omemtoreg[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $rA ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_REGWRADDR".$i);
+`$pipeline->instantiate()` ( .din(regWrAddr[`$i`]), .clk, .hold, .clear, .rst, .q(oregWrAddr[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < $bW ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_MEMRDBYTEWORD".$i);
+`$pipeline->instantiate()` ( .din(memRdByteWord[`$i`]), .clk, .hold, .clear, .rst, .q(omemRdByteWord[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 1 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_REGWREN".$i);
+`$pipeline->instantiate()` ( .din(regWrEn[`$i`]), .clk, .hold, .clear, .rst, .q(oregWrEn[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 5 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_RS".$i);
+`$pipeline->instantiate()` ( .din(rs[`$i`]), .clk, .hold, .clear, .rst, .q(ors[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 5 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_RT".$i);
+`$pipeline->instantiate()` ( .din(rt[`$i`]), .clk, .hold, .clear, .rst, .q(ort[`$i`]) );
+//; }
+
+//; for( my $i = 0 ; $i < 5 ; $i++ ){
+//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_RD".$i);
+`$pipeline->instantiate()` ( .din(rd[`$i`]), .clk, .hold, .clear, .rst, .q(ord[`$i`]) );
+//; }
+
+endmodule: `mname`

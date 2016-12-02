@@ -1,0 +1,14 @@
+
+moa:
+	perl run.pl MOA
+
+ssm:
+
+	perl run.pl SSM
+lfs:
+
+	perl run.pl LFS
+scp:
+	perl run.pl SCP
+mult:
+	perl run.pl MULT

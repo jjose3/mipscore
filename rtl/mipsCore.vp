@@ -46,6 +46,7 @@ input logic rst
 );
 
 logic [`$wl-1`:0] pc, pcNxt, instr, memrdaddr, memwraddr;
+logic stall_s1_s2;
 
 assign iCacheReadAddr = pc;
 assign instr = iCacheReadData;
@@ -55,8 +56,8 @@ assign dCacheAddr = dCacheReadEn ? memrdaddr : memwraddr;
 // Instantiations
 
 //; my $pc = generate_base("progCounter", "PROG_COUNTER");
-`$pc->instantiate()`(.pc(pc), .pcNxt(pcNxt), .rst(rst), .clk(clk));
+`$pc->instantiate()`(.clear(1'b0), .hold(stall_s1_s2), .pc(pc), .pcNxt(pcNxt), .rst(rst), .clk(clk));
 
 //; my $ccore = generate_base( "combCore", "COMB_CORE");
-`$ccore->instantiate()`(.clk, .rst, .instr(instr), .pc(pc), .src0(rfReadData_p0), .src1(rfReadData_p1), .memRdData(dCacheReadData), .memRdAddr(memrdaddr), .memRdEn(dCacheReadEn), .memWrData(dCacheWriteData), .memWrAddr(memwraddr), .memWrEn(dCacheWriteEn), .regWrEn(rfWriteEn_p0), .regWrAddr(rfWriteAddr_p0), .srcAddr0(rfReadAddr_p0) , .srcRdEn0(rfReadEn_p0) , .srcAddr1(rfReadAddr_p1) , .srcRdEn1(rfReadEn_p1) , .dst0(rfWriteData_p0), .pcNxt(pcNxt));
+`$ccore->instantiate()`(.clk, .rst, .instr(instr), .pc(pc), .src0(rfReadData_p0), .src1(rfReadData_p1), .memRdData(dCacheReadData), .memRdAddr(memrdaddr), .memRdEn(dCacheReadEn), .memWrData(dCacheWriteData), .memWrAddr(memwraddr), .memWrEn(dCacheWriteEn), .regWrEn(rfWriteEn_p0), .regWrAddr(rfWriteAddr_p0), .srcAddr0(rfReadAddr_p0) , .srcRdEn0(rfReadEn_p0) , .srcAddr1(rfReadAddr_p1) , .srcRdEn1(rfReadEn_p1) , .dst0(rfWriteData_p0), .pcNxt(pcNxt), .stall_s1_s2(stall_s1_s2));
 endmodule: `mname`

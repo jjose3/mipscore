@@ -21,133 +21,232 @@ output logic srcRdEn0 ,
 output logic [`$rA-1`:0] srcAddr1 ,
 output logic srcRdEn1 ,
 output logic [`$bW-1`:0] dst0,
-output logic [`$bW-1`:0] pcNxt
+output logic [`$bW-1`:0] pcNxt,
+output logic stall_s1_s2
 );
 
-logic [5:0] op; //opcode 
-logic [4:0] rs; //register s r-type
-logic [4:0] rt; // register t r-type
-logic [4:0] rd; // register d r-type
-logic [4:0] shmt; //shift amount r-type
-logic [5:0] fn; //function - r-type
-logic [5:0] mfn; //function created for I-type
-logic [5:0] muxfunc; //muxed function
-logic [`$bW-1`:0] simm; //sign ext immediate for i-type
-logic [25:0] offs; //offset for j-type
+logic [5:0] op_s2; //opcode 
+logic [4:0] rs_s2; //register s r-type
+logic [4:0] rt_s2; // register t r-type
+logic [4:0] rd_s2; // register d r-type
+logic [4:0] rs_s3; //register s r-type
+logic [4:0] rt_s3; // register t r-type
+logic [4:0] rd_s3; // register d r-type
+logic [4:0] rs_s4; //register s r-type
+logic [4:0] rt_s4; // register t r-type
+logic [4:0] rd_s4; // register d r-type
+logic [4:0] rs_s5; //register s r-type
+logic [4:0] rt_s5; // register t r-type
+logic [4:0] rd_s5; // register d r-type
+logic [4:0] shmt_s2; //shift amount r-type
+logic [4:0] shmt_s3; //shift amount r-type
+logic [5:0] fn_s2; //function - r-type
+logic [5:0] mfn_s2; //function created for I-type
+logic [5:0] muxfunc_s2; //muxed function
+logic [5:0] muxfunc_s3; //muxed function
+logic [`$bW-1`:0] simm_s2; //sign ext immediate for i-type
+logic [`$bW-1`:0] simm_s3; //sign ext immediate for i-type
+logic [25:0] offs_s2; //offset for j-type
 
-logic [`$bW-1`:0] pcplus4;
-logic [`$bW-1`:0] pcplus8;
-logic [`$bW-1`:0] pcplusimm;
-logic [`$bW-1`:0] jmpaddr;
-logic [`$bW-1`:0] alu_o, alu_a, alu_b;
+logic [1:0] forwarda, forwardb;
 
-logic [`$bW-1`:0] memRdByteWord, memRdByte, memrddata, memwrdata, memWrByte, memWrBytelow, memWrBytehi, regwrdata;
-logic lwl, swl, lwr, swr, link;
+logic [`$bW-1`:0] pcNxt_s3, pcNxt_s4, instr_s1, instr_s2;
 
-logic [4:0] aluctl;  
-logic [1:0] aluop;  
-logic bne, bgtz, beq, bgez, blez, bltz, zero, gtz, gez, branch, jmp, jmpreg, alusrc, aluimm, memtoreg, regdst, bytemem, wordmem; 
+logic memRdEn_s2, memRdEn_s3, memRdEn_s4, memWrEn_s2, memWrEn_s3, memWrEn_s4;
+logic [`$bW-1`:0] src0_s3, src0_s2, src1_s4, src1_s3, src1_mux_s3, src1_s2;
 
-assign op = instr[31:26];
-assign rs = instr[25:21];
-assign rt = instr[20:16];
-assign rd = instr[15:11];
-assign shmt = instr[10:6];
-assign fn = instr[5:0];
-assign simm = {{16{instr[15]}}, instr[15:0]};
-assign offs = instr[25:0];
+logic regWrEn_s2, regWrEn_s3, regWrEn_s4, regWrEn_s5, srcRdEn0_s2, srcRdEn1_s2;
+logic [`$rA-1`:0] regWrAddr_s2, regWrAddr_s3, regWrAddr_s4, regWrAddr_s5;
+logic [`$bW-1`:0] memRdData_s4, memRdData_s5, memRdAddr_s4;
 
-assign srcAddr0 = rs;
-assign srcAddr1 = rt;
+logic [`$bW-1`:0] pcplus4_s1;
+logic [`$bW-1`:0] pcplus4_s2;
+logic [`$bW-1`:0] pcplus8_s1;
+logic [`$bW-1`:0] pcplus8_s2;
+logic [`$bW-1`:0] pcplus8_s3;
+logic [`$bW-1`:0] pcplus8_s4;
+logic [`$bW-1`:0] pcplus8_s5;
+logic [`$bW-1`:0] pcplusimm_s2;
+logic [`$bW-1`:0] pcplusimm_s3;
+logic [`$bW-1`:0] jmpaddr_s2;
+logic [`$bW-1`:0] jmpaddr_s3;
+logic [`$bW-1`:0] alu_o_s3, alu_o_s4, alu_o_s5, alu_a_s2, alu_b_s2, alu_a_s3, alu_b_s3, alu_a_mux_s3, alu_b_mux_s3;
 
-assign pcplus4 = pc + `$bW`'d4;
-assign pcplus8 = pc + `$bW`'d8;
-assign pcplusimm = pcplus4 + {simm[`$bW-3`:0], 2'b0};
-assign jmpaddr = {pcplus4[31:28], offs[25:0], 2'b0};
+logic [`$bW-1`:0] memRdByteWord_s5, memRdByteWord_s4,memRdByte_s4, memrddata_s4, regWrData_s5, memWrByte_s4, memWrBytelow, memWrBytehi, regwrdata;
+logic link_s2, link_s5;
+logic clear, hold, stall_s1_s2, clear_s1_s2, clear_s2_s3;
 
-assign branch = (bgtz && gtz) || (bne && ~zero) || (beq && zero) || (bgez && gez) || (blez && ~gtz) || (bltz && ~gez);
+logic [4:0] aluctl_s3;  
+logic [1:0] aluop_s2;  
+logic [1:0] aluop_s3;  
+logic bne_s2, bne_s3, bgtz_s2, bgtz_s3;
+logic beq_s2, beq_s3, bgez_s2, bgez_s3;
+logic blez_s2, blez_s3, bltz_s2, bltz_s3;
+logic zero_s3, gtz_s3, gez_s3, branch_s3;
+logic jmp_s2, jmp_s3, jmpreg_s2, jmpreg_s3;
+logic alusrc_s2, alusrc_s3, aluimm_s2, memtoreg_s2;
+logic memtoreg_s3,memtoreg_s4,memtoreg_s5;
+logic regdst_s2,regdst_s3, bytemem_s2, bytemem_s3;
+logic bytemem_s4,wordmem_s2,wordmem_s3,wordmem_s4; 
+
+assign instr_s1 = instr;
+assign src0_s2 = src0;
+assign src1_s2 = src1;
+
+assign memRdEn = memRdEn_s4;
+assign memWrEn = memWrEn_s4;
+assign regWrEn = regWrEn_s5;
+assign regWrAddr = regWrAddr_s5;
+assign srcRdEn0 = srcRdEn0_s2;
+assign srcRdEn1 = srcRdEn1_s2;
+assign pcNxt = (jmp_s3 || jmpreg_s3 || branch_s3) ? pcNxt_s3 : pcplus4_s1;
+
+assign op_s2 = instr_s2[31:26];
+assign rs_s2 = instr_s2[25:21];
+assign rt_s2 = instr_s2[20:16];
+assign rd_s2 = instr_s2[15:11];
+assign shmt_s2 = instr_s2[10:6];
+assign fn_s2 = instr_s2[5:0];
+assign simm_s2 = {{16{instr_s2[15]}}, instr_s2[15:0]};
+assign offs_s2 = instr_s2[25:0];
+
+assign srcAddr0 = rs_s2;
+assign srcAddr1 = rt_s2;
+
+assign pcplus4_s1 = pc + `$bW`'d4;
+assign pcplus8_s1 = pc + `$bW`'d8;
+assign pcplusimm_s2 = pcplus4_s2 + {simm_s2[`$bW-3`:0], 2'b0};
+assign jmpaddr_s2 = {pcplus4_s2[31:28], offs_s2[25:0], 2'b0};
+
+assign branch_s3 = (bgtz_s3 && gtz_s3) || (bne_s3 && ~zero_s3) || (beq_s3 && zero_s3);
 
 always_comb begin
-	unique case({jmp, jmpreg, branch})
-		3'b001:	   pcNxt = pcplusimm;
-		3'b010:    pcNxt = src0;
-		3'b100:    pcNxt = jmpaddr; 
-		default:   pcNxt = pcplus4;
+	if(jmp_s3 || jmpreg_s3 || branch_s3) begin
+		clear_s1_s2 = 1'b1;
+		clear_s2_s3 = 1'b1;
+	end else begin
+		clear_s1_s2 = 1'b0;
+		clear_s2_s3 = 1'b0;
+	end
+end
+
+always_comb begin
+	unique case({jmp_s3, jmpreg_s3, branch_s3})
+		3'b001:	   pcNxt_s3 = pcplusimm_s3;
+		3'b010:    pcNxt_s3 = src0_s3;
+		3'b100:    pcNxt_s3 = jmpaddr_s3;
+		default:   pcNxt_s3 = pcNxt_s3; 
 	endcase
 end
 
-assign alu_b = alusrc ? simm : src1;
-assign alu_a = src0;
-assign muxfunc = aluimm ? mfn : fn;
+assign alu_b_mux_s3 = alusrc_s3 ? simm_s3 : src1_mux_s3;
+assign alu_a_s2 = src0_s2;
+assign muxfunc_s2 = aluimm_s2 ? mfn_s2 : fn_s2;
 
-assign memWrAddr = alu_o;
-assign memRdAddr = {alu_o[31:2],2'b00};
-assign memWrData = (swl || swr) ? memwrdata : (bytemem||wordmem) ? memWrByte : src1;
+assign memWrAddr = {alu_o_s4[31:2],2'b00};
+assign memRdAddr = {alu_o_s4[31:2],2'b00};
+assign memWrData = (bytemem_s4) ? memWrByte_s4 : src1_s4;
 
-assign link = (jmp || jmpreg || bgez || bltz) && regWrEn;
+assign link_s2 = (jmp_s2 || jmpreg_s2) && regWrEn_s2;
 
-assign dst0 = (lwl || lwr) ? regwrdata : link ? pcplus8 : (memtoreg ? memRdByteWord : alu_o);
-assign regWrAddr = link ? 5'b11111 : (regdst ? rd : rt);
+assign dst0 = regWrData_s5;
+assign regWrData_s5 = link_s5 ? pcplus8_s5 : (memtoreg_s5 ? memRdByteWord_s5 : alu_o_s5);
+assign regWrAddr_s2 = link_s2 ? 5'b11111 : (regdst_s2 ? rd_s2 : rt_s2);
 
-assign memRdByteWord = (bytemem || wordmem) ? memRdByte : memRdData;
+assign memRdByteWord_s4 = (bytemem_s4) ? memRdByte_s4 : memrddata_s4;
 
 always_comb begin
-	case({bytemem,alu_o[1:0]})
-		3'b100: memRdByte = {{24{memRdData[7]}}, memRdData[7:0]};
-		3'b101: memRdByte = {{24{memRdData[15]}}, memRdData[15:8]};
-		3'b110: memRdByte = {{24{memRdData[23]}}, memRdData[23:16]};
-		3'b111: memRdByte = {{24{memRdData[31]}}, memRdData[31:24]};
-		3'b000: memRdByte = {{16{memRdData[15]}}, memRdData[15:0]};
-		3'b010: memRdByte = {{16{memRdData[31]}}, memRdData[31:16]};
+	case({bytemem_s4,alu_o_s4[1:0]})
+		3'b100: memRdByte_s4 = {{24{memrddata_s4[7]}},  memrddata_s4[7:0]};
+		3'b101: memRdByte_s4 = {{24{memrddata_s4[15]}}, memrddata_s4[15:8]};
+		3'b110: memRdByte_s4 = {{24{memrddata_s4[23]}}, memrddata_s4[23:16]};
+		3'b111: memRdByte_s4 = {{24{memrddata_s4[31]}}, memrddata_s4[31:24]};
 	endcase
 end
 
-assign memrddata = memRdData;
+assign memrddata_s4 = memRdData;
 always_comb begin
-	case({bytemem, alu_o[1:0]})
-		3'b100: memWrByte = {memrddata[31:8], src1[7:0]}; 
-		3'b101: memWrByte = {memrddata[31:16], src1[7:0], memrddata[7:0]};
-		3'b110: memWrByte = {memrddata[31:24], src1[7:0], memrddata[15:0]};
-		3'b111: memWrByte = {src1[7:0], memrddata[23:0]};
-		3'b000: memWrByte = {memrddata[31:16], src1[15:0]};
-		3'b010: memWrByte = {src1[15:0], memrddata[15:0]};
+	case({bytemem_s4, alu_o_s4[1:0]})
+		3'b100: memWrByte_s4 = {memrddata_s4[31:8],  src1_s4[7:0]}; 
+		3'b101: memWrByte_s4 = {memrddata_s4[31:16], src1_s4[7:0], memrddata_s4[7:0]};
+		3'b110: memWrByte_s4 = {memrddata_s4[31:24], src1_s4[7:0], memrddata_s4[15:0]};
+		3'b111: memWrByte_s4 = {src1_s4[7:0], memrddata_s4[23:0]};
 	endcase
 end
 
+//Forwarding
+
 always_comb begin
-	case({lwl,alu_o[1:0]})
-		3'b000: regwrdata = {memRdData[31:24],memRdData[23:16],memRdData[15:8],memRdData[7:0]};
-		3'b001: regwrdata = {src1[31:24],memRdData[31:24],memRdData[23:16],memRdData[15:8]};
-		3'b010: regwrdata = {src1[31:16],memRdData[31:24],memRdData[23:16]};
-		3'b011: regwrdata = {src1[31:8],memRdData[31:24]};
-		3'b100: regwrdata = {memRdData[7:0],src1[23:0]};
-		3'b101: regwrdata = {memRdData[15:8],memRdData[7:0],src1[15:0]};
-		3'b110: regwrdata = {memRdData[23:16],memRdData[15:8], memRdData[7:0],src1[7:0]};
-		3'b111: regwrdata = {memRdData[31:24], memRdData[23:16],memRdData[15:8], memRdData[7:0]};
-	endcase
+
+	if(regWrEn_s4 && regWrAddr_s4 != 5'd0 && regWrAddr_s4 == rs_s3) begin
+		forwarda = 2'd1;
+	end else if (regWrEn_s5 && regWrAddr_s5 != 5'd0 && regWrAddr_s5 == rs_s3) begin
+		forwarda = 2'd2;
+	end else forwarda = 2'd0;
+
+	if(regWrEn_s4 && regWrAddr_s4 != 5'd0 && regWrAddr_s4 == rt_s3) begin
+		forwardb = 2'd1;
+	end else if (regWrEn_s5 && regWrAddr_s5 != 5'd0 && regWrAddr_s5 == rt_s3) begin
+		forwardb = 2'd2;
+	end else forwardb = 2'd0;
+		
+
 end
 
 always_comb begin
-	case({swl,alu_o[1:0]})
-		3'b000: memwrdata = {src1[31:0]};
-		3'b001: memwrdata = {src1[23:0],memRdData[7:0]};
-		3'b010: memwrdata = {src1[15:0],memRdData[15:0]};
-		3'b011: memwrdata = {src1[7:0],memRdData[23:0]};
-		3'b100: memwrdata = {memRdData[31:8],src1[31:24]};
-		3'b101: memwrdata = {memRdData[31:16],src1[31:16]};
-		3'b110: memwrdata = {memRdData[31:24],src1[31:8]};
-		3'b111: memwrdata = {src1[31:0]};
+	unique case (forwarda)
+		2'd1: alu_a_mux_s3 = alu_o_s4;
+		2'd2: alu_a_mux_s3 = regWrData_s5;
+		default: alu_a_mux_s3 = alu_a_s3;
 	endcase
+	
+	unique case (forwardb)
+		2'd1: src1_mux_s3 = alu_o_s4;
+		2'd2: src1_mux_s3 = regWrData_s5;
+		default: src1_mux_s3 = src1_s3;
+	endcase
+
 end
+
+// LW hazard detection
+
+always_comb begin
+	if(memRdEn_s3 && ((rt_s2 == regWrAddr_s3) || (rs_s2 == regWrAddr_s3))) begin
+		stall_s1_s2 = 1'b1;
+	end else begin
+		stall_s1_s2 = 1'b0;
+	end
+
+end
+
+assign clear = 1'b0;
+assign hold = 1'b0;
+
+//Pipelines
+
+//; my $ifid = generate_base("ifid", "IFID");
+`$ifid->instantiate()`(.clk, .hold(stall_s1_s2), .clear(clear_s1_s2), .rst, .pcplus8(pcplus8_s1), .pcplus4(pcplus4_s1), .instr(instr_s1), .opcplus8(pcplus8_s2), .opcplus4(pcplus4_s2), .oinstr(instr_s2));
+
+//; my $idex = generate_base("idex", "IDEX");
+`$idex->instantiate()`(.clk, .hold(hold), .clear(stall_s1_s2 || clear_s2_s3), .rst, .muxfunc(muxfunc_s2),.omuxfunc(muxfunc_s3),.memRdEn(memRdEn_s2),.omemRdEn(memRdEn_s3),.memWrEn(memWrEn_s2),.omemWrEn(memWrEn_s3),.src0(src0_s2),.osrc0(src0_s3),.src1(src1_s2),.osrc1(src1_s3),.regWrEn(regWrEn_s2),.oregWrEn(regWrEn_s3),.regWrAddr(regWrAddr_s2),.oregWrAddr(regWrAddr_s3),.pcplusimm(pcplusimm_s2),.opcplusimm(pcplusimm_s3),.jmpaddr(jmpaddr_s2),.ojmpaddr(jmpaddr_s3),.alu_a(alu_a_s2),.oalu_a(alu_a_s3),.aluop(aluop_s2),.oaluop(aluop_s3),.bne(bne_s2),.obne(bne_s3),.bgtz(bgtz_s2),.obgtz(bgtz_s3),.beq(beq_s2),.obeq(beq_s3),.jmp(jmp_s2),.ojmp(jmp_s3),.jmpreg(jmpreg_s2),.ojmpreg(jmpreg_s3),.memtoreg(memtoreg_s2),.omemtoreg(memtoreg_s3),.alusrc(alusrc_s2),.oalusrc(alusrc_s3),.bytemem(bytemem_s2),.obytemem(bytemem_s3),.link(link_s2),.olink(link_s3),.pcplus8(pcplus8_s2),.opcplus8(pcplus8_s3),.shmt(shmt_s2),.oshmt(shmt_s3),.rs(rs_s2),.ors(rs_s3),.rd(rd_s2),.ord(rd_s3),.rt(rt_s2),.ort(rt_s3),.simm(simm_s2),.osimm(simm_s3));
+
+//; my $exmem = generate_base("exmem", "EXMEM");
+`$exmem->instantiate()`(.clk, .hold(hold), .clear, .rst, .alu_o(alu_o_s3),.oalu_o(alu_o_s4),.bytemem(bytemem_s3),.obytemem(bytemem_s4),.src1(src1_mux_s3),.osrc1(src1_s4),.link(link_s3),.olink(link_s4),.pcplus8(pcplus8_s3),.opcplus8(pcplus8_s4),.memtoreg(memtoreg_s3),.omemtoreg(memtoreg_s4),.regWrAddr(regWrAddr_s3),.oregWrAddr(regWrAddr_s4),.memRdEn(memRdEn_s3),.omemRdEn(memRdEn_s4),.memWrEn(memWrEn_s3),.omemWrEn(memWrEn_s4),.regWrEn(regWrEn_s3),.oregWrEn(regWrEn_s4),.pcNxt(pcNxt_s3),.opcNxt(pcNxt_s4),.rs(rs_s3),.ors(rs_s4),.rd(rd_s3),.ord(rd_s4),.rt(rt_s3),.ort(rt_s4));
+
+//; my $memwb = generate_base("memwb", "MEMWB");
+`$memwb->instantiate()`(.clk, .hold(hold), .clear,.rst,.alu_o(alu_o_s4),.oalu_o(alu_o_s5),.link(link_s4),.olink(link_s5),.pcplus8(pcplus8_s4),.opcplus8(pcplus8_s5),.memtoreg(memtoreg_s4),.omemtoreg(memtoreg_s5),.regWrAddr(regWrAddr_s4),.oregWrAddr(regWrAddr_s5),.memRdByteWord(memRdByteWord_s4),.omemRdByteWord(memRdByteWord_s5),.regWrEn(regWrEn_s4),.oregWrEn(regWrEn_s5),.rs(rs_s4),.ors(rs_s5),.rd(rd_s4),.ord(rd_s5),.rt(rt_s4),.ort(rt_s5));
 
 // Instantiations
 
+//;# my $bl = generate_base("branchlogic", "BRANCHLOGIC");
+//;#`$bl->instantiate()`(.a(alu_a_s2), .b(alu_b_mux_s3), .shmt(shmt_s3), .out(alu_o_s3), .gtz(gtz_s3), .gez(gez_s3), .zero(zero_s3));
+
 //;  my $ctl = generate_base( "ctl" , "CPU_CTL");
-`$ctl->instantiate()`(.op(op), .func(fn), .rt({rt[5],rt[0]}), .mfunc(mfn), .beq(beq), .bne(bne), .bgtz(bgtz), .bgez(bgez), .blez(blez), .bltz(bltz), .aluop(aluop), .lwl(lwl), .lwr(lwr), .aluimm(aluimm), .memrden(memRdEn), .memwren(memWrEn), .memtoreg(memtoreg), .regdst(regdst), .regwren(regWrEn), .alusrc(alusrc), .srcrden0(srcRdEn0), .srcrden1(srcRdEn1), .bytemem(bytemem), .wordmem(wordmem), .lwl(lwl), .swl(swl), .lwr(lwr), .swr(swr), .jmpreg(jmpreg), .jmp(jmp));
+`$ctl->instantiate()`(.op(op_s2), .func(fn_s2),.mfunc(mfn_s2), .beq(beq_s2), .bne(bne_s2), .bgtz(bgtz_s2),.aluop(aluop_s2), .aluimm(aluimm_s2), .memrden(memRdEn_s2), .memwren(memWrEn_s2), .memtoreg(memtoreg_s2), .regdst(regdst_s2), .regwren(regWrEn_s2), .alusrc(alusrc_s2), .srcrden0(srcRdEn0_s2), .srcrden1(srcRdEn1_s2), .bytemem(bytemem_s2),.jmpreg(jmpreg_s2), .jmp(jmp_s2));
 
 //; my $aluctl = generate_base("aluctl", "ALU_CTL");
-`$aluctl->instantiate()`(.func(muxfunc), .aluop(aluop), .aluctl(aluctl));
+`$aluctl->instantiate()`(.func(muxfunc_s3), .aluop(aluop_s3), .aluctl(aluctl_s3));
 
 //; my $alu = generate_base("alu", "ALU");
-`$alu->instantiate()`(.clk, .rst, .ctl(aluctl), .a(alu_a), .b(alu_b), .shmt(shmt), .out(alu_o), .gtz(gtz), .gez(gez), .zero(zero));
+`$alu->instantiate()`(.clk, .rst, .ctl(aluctl_s3), .a(alu_a_mux_s3), .b(alu_b_mux_s3), .shmt(shmt_s3), .out(alu_o_s3), .gtz(gtz_s3),.zero(zero_s3));
 endmodule: `mname`
