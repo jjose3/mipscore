@@ -1,13 +1,3 @@
-
-# MIPS assemply test program for testing all the required instructions in the MIPS simulator project
-# if the simulator works well : $r1 = 0; $r2 = 2; $r11 = 0x8002; 
-# $r12 = 2; $r16 = -2; $r21 = 2;
-# 
-# @Northeastern University
-# Computer Architecture for Computer Scientists (EECE 3230)
-#
-
-
 main:	
 	
 # test 1: check zero register

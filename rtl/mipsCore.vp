@@ -8,7 +8,7 @@
 //; my $btb = parameter( name=>"enableBTB", val=>0, list=>[0,1], doc=>"Enable BTB");
 //; my $btbW = parameter( name=>"entrySizeBTB", val=>34, max=>36, doc=>"BTB entry size");
 //; my $btbC = parameter( name=>"entryCountBTB", val=>0, max=>256, doc=>"BTB entries");
-//; my $mD = parameter( name=>"MipsMode", val=>"Cyc1", list=>["Cyc1","Cyc5","Smpl5","Fwd5","Dual"], doc=>"Iterative design state, testbench will ignore" );
+//; my $mD = parameter( name=>"MipsMode", val=>"Fwd5", list=>["Cyc1","Cyc5","Smpl5","Fwd5","Dual"], doc=>"Iterative design state, testbench will ignore" );
 
 module `mname` (
 //ICache Ifc
@@ -45,8 +45,7 @@ input logic clk,
 input logic rst
 );
 
-logic [`$wl-1`:0] pc, pcNxt, instr, memrdaddr, memwraddr;
-logic stall_s1_s2;
+logic [`$wl-1`:0] pc, instr, memrdaddr, memwraddr;
 
 assign iCacheReadAddr = pc;
 assign instr = iCacheReadData;
@@ -55,9 +54,6 @@ assign dCacheAddr = dCacheReadEn ? memrdaddr : memwraddr;
 
 // Instantiations
 
-//; my $pc = generate_base("progCounter", "PROG_COUNTER");
-`$pc->instantiate()`(.clear(1'b0), .hold(stall_s1_s2), .pc(pc), .pcNxt(pcNxt), .rst(rst), .clk(clk));
-
 //; my $ccore = generate_base( "combCore", "COMB_CORE");
-`$ccore->instantiate()`(.clk, .rst, .instr(instr), .pc(pc), .src0(rfReadData_p0), .src1(rfReadData_p1), .memRdData(dCacheReadData), .memRdAddr(memrdaddr), .memRdEn(dCacheReadEn), .memWrData(dCacheWriteData), .memWrAddr(memwraddr), .memWrEn(dCacheWriteEn), .regWrEn(rfWriteEn_p0), .regWrAddr(rfWriteAddr_p0), .srcAddr0(rfReadAddr_p0) , .srcRdEn0(rfReadEn_p0) , .srcAddr1(rfReadAddr_p1) , .srcRdEn1(rfReadEn_p1) , .dst0(rfWriteData_p0), .pcNxt(pcNxt), .stall_s1_s2(stall_s1_s2));
+`$ccore->instantiate()`(.clk, .rst, .instr(instr), .pc(pc), .src0(rfReadData_p0), .src1(rfReadData_p1), .memRdData(dCacheReadData), .memRdAddr(memrdaddr), .memRdEn(dCacheReadEn), .memWrData(dCacheWriteData), .memWrAddr(memwraddr), .memWrEn(dCacheWriteEn), .regWrEn(rfWriteEn_p0), .regWrAddr(rfWriteAddr_p0), .srcAddr0(rfReadAddr_p0) , .srcRdEn0(rfReadEn_p0) , .srcAddr1(rfReadAddr_p1) , .srcRdEn1(rfReadEn_p1) , .dst0(rfWriteData_p0));
 endmodule: `mname`

@@ -1,31 +1,31 @@
-//@00000000
-//20040064 	//	[ addi $a0 $zero 10  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x0000000a)]
-//@00000004
-//20050003 	//	[ addi $a1 $zero 20  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000014)]
-//@00000008
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@0000000c
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000010
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000014
-//0085001a 	//	[ mult $a0 $a1  => R(op:0(add) rs:5(a1) rt:0(zero) rd:4(a0) sh:0 func:32)] 
-//@00000018
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@0000001c
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000020
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000024
-//00004010 	//	[ add $t0 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:8(t0) sh:0 func:32)] 
-//@00000028
-//00004812 	//	[ add $t1 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:9(t1) sh:0 func:32)] 
-//@0000002c
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000030
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-//@00000034
-//20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000000
+2004f00f 	//	[ addi $a0 $zero 10  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x0000000a)]
+@00000004
+2005ff0f 	//	[ addi $a1 $zero 20  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000014)]
+@00000008
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000000c
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000010
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000014
+00850018 	//	[ mult $a0 $a1  => R(op:0(add) rs:5(a1) rt:0(zero) rd:4(a0) sh:0 func:32)] 
+@00000018
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@0000001c
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000020
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000024
+00004010 	//	[ add $t0 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:8(t0) sh:0 func:32)] 
+@00000028
+00004812 	//	[ add $t1 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:9(t1) sh:0 func:32)] 
+@0000002c
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000030
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+@00000034
+20000000 	//	[ addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
 //@00000000
 //20040064 	//	[ addi $a0 $zero 10  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x0000000a)]
 //@00000004
@@ -62,25 +62,25 @@
 //20000000 // [addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
 //@00000024
 //20000000 // [addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-@00000000
-20040000 	//	[addi $a0 $zero 0  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000000)]
-@00000004
-20050004 	//	[addi $a1 $zero 4  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000004)]
-@00000008
-8c900000 	//	[lw $s0 0($a0)  => I(op:35(lw) rs:4(a0) rt:16(s0) immed:0x00000000)]
-@0000000c
-8cb10000 	//	[lw $s1 0($a1)  => I(op:35(lw) rs:5(a1) rt:17(s1) immed:0x00000000)]
-@00000010
-16110000 	//	[bne $s0 $s1 mult  => I(op:5(bne) rs:16(s0) rt:17(s1) immed:0x00000000)]
-@00000014
-0211001a 	//	[add $zero $s0 $s1  => R(op:0(add) rs:16(s0) rt:17(s1) rd:0(zero) sh:0 func:32)] 
-@00000018
-00004010 	//	[add $t0 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:8(t0) sh:0 func:32)] 
-@0000001c
-00004812 	//	[add $t1 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:9(t1) sh:0 func:32)] 
-@00000020
-20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-@00000024
-20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
-@00000028
-20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+//@00000000
+//20040000 	//	[addi $a0 $zero 0  => I(op:8(addi) rs:0(zero) rt:4(a0) immed:0x00000000)]
+//@00000004
+//20050004 	//	[addi $a1 $zero 4  => I(op:8(addi) rs:0(zero) rt:5(a1) immed:0x00000004)]
+//@00000008
+//8c900000 	//	[lw $s0 0($a0)  => I(op:35(lw) rs:4(a0) rt:16(s0) immed:0x00000000)]
+//@0000000c
+//8cb10000 	//	[lw $s1 0($a1)  => I(op:35(lw) rs:5(a1) rt:17(s1) immed:0x00000000)]
+//@00000010
+//16110000 	//	[bne $s0 $s1 mult  => I(op:5(bne) rs:16(s0) rt:17(s1) immed:0x00000000)]
+//@00000014
+//0211001a 	//	[add $zero $s0 $s1  => R(op:0(add) rs:16(s0) rt:17(s1) rd:0(zero) sh:0 func:32)] 
+//@00000018
+//00004010 	//	[add $t0 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:8(t0) sh:0 func:32)] 
+//@0000001c
+//00004812 	//	[add $t1 $zero $zero  => R(op:0(add) rs:0(zero) rt:0(zero) rd:9(t1) sh:0 func:32)] 
+//@00000020
+//20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+//@00000024
+//20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]
+//@00000028
+//20000000 	//	[addi $zero $zero 0  => I(op:8(addi) rs:0(zero) rt:0(zero) immed:0x00000000)]

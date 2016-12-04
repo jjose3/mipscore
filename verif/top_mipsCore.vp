@@ -27,27 +27,10 @@ module `mname` ();
 
     logic 			  perf ; 
 
-    logic             instr_err ;
-    logic             instr_vld ;
-    logic   [5:0]     instr_cnt ;
-    logic   [5:0]     instr_ver ;
-
     logic             triggerStart;
     logic             triggerStop;
     int               seed;
     int               clk_period ;
-
-    logic signed [`$wl-1`:0] instr, pc, src0, src1, memRdData, memRdAddr, memWrData , memWrAddr , dst0, pcNxt;
-    logic             memRdEn, memWrEn;
-    logic [5:0] op; //opcode 
-    logic [4:0] rs; //register s r-type
-    logic [4:0] rt; // register t r-type
-    logic [4:0] rd; // register d r-type
-    logic [4:0] shmt; //shift amount r-type
-    logic [5:0] fn; //function - r-type
-    logic signed [15:0] imm; //immediate for i-type
-    logic signed [31:0] simm; //immediate for i-type
-    logic signed [25:0] offs; //offset for j-type
 
 	logic [`$iW*$wl-1`:0] iCacheReadData;
 	logic [`$wl-1`:0] iCacheReadAddr;
@@ -85,8 +68,8 @@ module `mname` ();
     `$ic->instantiate()` (.*);
     `$rf->instantiate()` (.*);
     `$gb->instantiate()`  (.*);
-    `$pc->instantiate()`  (.triggerStart(perf), .triggerStop(triggerStop), .increment(instr_vld), .clk(clk), .rst(rst) );
-    `$ec->instantiate()`  (.triggerStart(triggerStart), .triggerStop(triggerStop), .increment(instr_err), .clk(clk), .rst(rst) );
+    //;#`$pc->instantiate()`  (.triggerStart(perf), .triggerStop(triggerStop), .increment(instr_vld), .clk(clk), .rst(rst) );
+    //;#`$ec->instantiate()`  (.triggerStart(triggerStart), .triggerStop(triggerStop), .increment(instr_err), .clk(clk), .rst(rst) );
 
     string testname;
     initial begin
@@ -97,7 +80,7 @@ module `mname` ();
 		else if(testname == "SSM") testcase_ssm();
 		else if(testname == "LFS") testcase_lfs();
 		else if(testname == "SCP") testcase_scp();
-		else if(testname == "MULT") testcase_mult();
+		else if(testname == "MOI") testcase_moi();
 		else $fatal("FATAL ERROR - TESTNAME not found");
         end else begin
             $fatal("FATAL ERROR - TESTNAME not provided") ;
@@ -113,6 +96,7 @@ module `mname` ();
     	perf = 1'b1 ;
 	@(taskstop);
     	triggerStop = 1'b1 ;
+	#100;
     	$finish();
     end
 	

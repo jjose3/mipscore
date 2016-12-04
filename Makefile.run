@@ -10,5 +10,5 @@ lfs:
 	perl run.pl LFS
 scp:
 	perl run.pl SCP
-mult:
-	perl run.pl MULT
+moi:
+	perl run.pl MOI

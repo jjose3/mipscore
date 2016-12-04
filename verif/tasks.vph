@@ -1,10 +1,11 @@
 // tasks.vph
 
-	task testcase_mult();
+	task testcase_moi();
 		begin
 		initialize();
-		repeat(60) @(posedge clk);
-		taskstop = 1'b1;
+		waitforend_moi();
+		calcipc();
+		passorfail_moi();
 		end
 	endtask
 
@@ -57,6 +58,8 @@
 	real ipc;
 		begin
 		ipc = instrcount/cyclecount;
+		$display("Time %t: Instr Count : %f", $time, instrcount);
+		$display("Time %t: Cycle Count : %f", $time, cyclecount);
 		$display("Time %t: Calculated IPC : %f", $time, ipc);
 		end
 	endtask
@@ -87,7 +90,7 @@
 		end
 	endtask
 
-	//; my $count = int(rand(8));
+	//; my $count = int(rand(10));
 	int count; logic signed [31:0] elements [0:`$count`];
 	task randomize_moa();
 		rst = 1'b0;
@@ -100,7 +103,7 @@
 			my_dcache.mem[55] = count[31:24];
 			$display("\t count = %d", count);
 			for(int i=0; i<count; i++) begin
-				elements[i] = $random()%100;
+				elements[i] = $random()%1000;
 				$display("\t elements = %d", elements[i]);
 				my_dcache.mem[(i*4)+56] = elements[i][7:0];	
 				my_dcache.mem[(i*4)+57] = elements[i][15:8];	
@@ -114,7 +117,7 @@
 		logic [31:0] memend;
 		begin
 			@(iCacheReadAddr == `$wl`'h040);
-			repeat(6) @(posedge clk );
+			repeat(4) @(posedge clk );
 			memend[7:0] = my_dcache.mem[40];
 			memend[15:8] = my_dcache.mem[41];
 			memend[23:16] = my_dcache.mem[42];
@@ -167,7 +170,6 @@
 	//;my $sublen = length($substr[$linenum]);
 	//;my $mainrev = reverse $mainstr[$linenum];
 	//;my $subrev = reverse $substr[$linenum];
-		int in, line=0, r;
 		logic [`($mainlen*8)-1`:0] mainstrrev;
 		logic [`($sublen*8)-1`:0] substrrev;
 		rst = 1'b0;
@@ -201,7 +203,7 @@
 	task waitforend_ssm();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h60);
-			repeat(6) @(posedge clk );
+			repeat(4) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
@@ -239,7 +241,6 @@
 	//;my $strlen = length($lfsstr[$linenum]);
 	//;my $strrev = reverse $lfsstr[$linenum];
 	//;my $char = $lfschar[$linenum];
-		int in, line=0, r;
 		logic [`($strlen*8)-1`:0] lfsstrrev;
 		logic [7:0] char0;
 		rst = 1'b0;
@@ -269,7 +270,7 @@
 	task waitforend_lfs();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h44);
-			repeat(6) @(posedge clk );
+			repeat(4) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
@@ -295,7 +296,6 @@
 	//;my $mainlen = length($mainstr[$linenum]);
 	//;my $mainrev = reverse $mainstr[$linenum];	
 	task randomize_scp();
-		int in, line=0, r;
 		logic [`($mainlen*8)-1`:0] mainstrrev;
 		rst = 1'b0;
 		verifmatch=0;
@@ -314,7 +314,7 @@
 	task waitforend_scp();
 		begin
 			@(iCacheReadAddr[7:0] == 8'h70);
-			repeat(6) @(posedge clk );
+			repeat(4) @(posedge clk );
 			if(my_dcache.mem[40] === 8'hAD && my_dcache.mem[41] === 8'hDE) begin
 				$display("Time %t: Testcase Done", $time);
 				$monitoroff;
@@ -324,7 +324,6 @@
 		end
 	endtask
 	task passorfail_scp();
-		logic mipsmatch;
 		int matchcount=0, mismatchcount=0;
 		logic [`($mainlen*8)-1`:0] memstr;
 		begin
@@ -351,6 +350,32 @@
 				$display("Time %t: ERROR - Testcase failed", $time);
 				end
 			else $display("Time %t: Testcase passed", $time);
+			taskstop = 1'b1;
+		end
+	endtask
+
+	task waitforend_moi();
+		begin
+			@(iCacheReadAddr == `$wl`'h0C0);
+			repeat(5) @(posedge clk );
+			$display("Time %t: Testcase Done", $time);
+			cyclestop = 1'b1;
+		end
+	endtask
+	task passorfail_moi();
+		logic [31:0] mem [0:31];
+		logic mismatch;
+		begin
+			mismatch = 1'b0;
+			$readmemh("verif/regfile_moi.txt", mem, 0, 31);
+			for(int i=0; i<32; i++) begin
+			if(my_rf.mem[i] != mem[i]) begin
+				$display("Time %t: Error - Mismatch in the register %i", $time, i);
+				mismatch = 1'b1;
+			end
+			end
+			if(mismatch == 1'b0) $display("Time %t: Testcase passed", $time);
+			else $display("Time %t: ERROR - Testcase failed", $time);
 			taskstop = 1'b1;
 		end
 	endtask

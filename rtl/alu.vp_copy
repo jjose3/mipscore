@@ -44,7 +44,8 @@ module `mname` (
 	assign slt = oflow_sub ? ~(a[31]) : a[31];
 
 	always_comb begin
-		unique case (ctl)
+		out = 32'd0; rem = 32'd0; quo = 32'd0; HInxt = 32'd0; LOnxt = 32'd0; mult = 64'd0; tmp = 32'd0; 
+		case (ctl)
 			5'd0:  		out = a & b;				/* and */
 			5'd1:  		out = a | b;				/* or */
 			5'd2:  		out = add_ab;				/* add */
@@ -65,7 +66,6 @@ module `mname` (
 			5'd17:		out = b >> shmt;			/* srl */
 			5'd18:		out = b >> a[4:0];			/* srlv */
 			5'd19: 		begin tmp = b >> a[4:0]; out = ({32{b[31]}} << (32-a[4:0])) + tmp; end			/* srav */
-			default:	out = 32'd0;
 		endcase
 	end
 

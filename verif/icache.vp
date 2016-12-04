@@ -4,7 +4,6 @@
 
 
 module `mname`(
-		input  logic clk,
 		input  logic [`$wl-1`:0] iCacheReadAddr,
 		output logic [`$wl-1`:0] iCacheReadData
 		);
@@ -18,7 +17,7 @@ module `mname`(
 		else if(testname == "SSM") $readmemh("verif/icache_substringmatch.txt", mem, 0, 255);
 		else if(testname == "LFS") $readmemh("verif/icache_letterfreq_string.txt", mem, 0, 255);
 		else if(testname == "SCP") $readmemh("verif/icache_stringcopy.txt", mem, 0, 255);
-		else if(testname == "MULT") $readmemh("verif/icache.txt", mem, 0, 255);
+		else if(testname == "MOI") $readmemh("verif/icache_moi.txt", mem, 0, 255);
 		//$monitor("0: %h	\
 		//	  4: %h \
 		//	  8: %h \

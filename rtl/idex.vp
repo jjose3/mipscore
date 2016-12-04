@@ -27,8 +27,6 @@ input logic [`$bW-1`:0] jmpaddr,
 output logic [`$bW-1`:0] ojmpaddr,
 input logic [`$bW-1`:0] alu_a,
 output logic [`$bW-1`:0] oalu_a,
-input logic [`$bW-1`:0] alu_b,
-output logic [`$bW-1`:0] oalu_b,
 input logic [1:0] aluop,
 output logic [1:0] oaluop,
 input logic [`$bit-1`:0] bne,
@@ -43,18 +41,10 @@ input logic [`$bit-1`:0] jmpreg,
 output logic [`$bit-1`:0] ojmpreg,
 input logic [`$bit-1`:0] memtoreg,
 output logic [`$bit-1`:0] omemtoreg,
-input logic [`$bit-1`:0] bgez,
-output logic [`$bit-1`:0] obgez,
-input logic [`$bit-1`:0] blez,
-output logic [`$bit-1`:0] oblez,
-input logic [`$bit-1`:0] bltz,
-output logic [`$bit-1`:0] obltz,
 input logic [`$bit-1`:0] alusrc,
 output logic [`$bit-1`:0] oalusrc,
 input logic [`$bit-1`:0] bytemem,
 output logic [`$bit-1`:0] obytemem,
-input logic [`$bit-1`:0] wordmem,
-output logic [`$bit-1`:0] owordmem,
 input logic [`$bit-1`:0] link,
 output logic [`$bit-1`:0] olink,
 input logic [`$bW-1`:0] pcplus8,
@@ -126,11 +116,6 @@ output logic [`$bW-1`:0] osimm
 `$pipeline->instantiate()` ( .din(alu_a[`$i`]), .clk, .hold, .clear, .rst, .q(oalu_a[`$i`]) );
 //; }
 
-//; for( my $i = 0 ; $i < $bW ; $i++ ){
-//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_ALUB".$i);
-`$pipeline->instantiate()` ( .din(alu_b[`$i`]), .clk, .hold, .clear, .rst, .q(oalu_b[`$i`]) );
-//; }
-
 //; for( my $i = 0 ; $i < 2 ; $i++ ){
 //;  my $pipeline = generate_base( "pipeline" , "PIPELINE_ALUOP".$i);
 `$pipeline->instantiate()` ( .din(aluop[`$i`]), .clk, .hold, .clear, .rst, .q(oaluop[`$i`]) );
@@ -167,21 +152,6 @@ output logic [`$bW-1`:0] osimm
 //; }
 
 //; for( my $i = 0 ; $i < 1 ; $i++ ){
-//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_BGEZ".$i);
-`$pipeline->instantiate()` ( .din(bgez[`$i`]), .clk, .hold, .clear, .rst, .q(obgez[`$i`]) );
-//; }
-
-//; for( my $i = 0 ; $i < 1 ; $i++ ){
-//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_BLEZ".$i);
-`$pipeline->instantiate()` ( .din(blez[`$i`]), .clk, .hold, .clear, .rst, .q(oblez[`$i`]) );
-//; }
-
-//; for( my $i = 0 ; $i < 1 ; $i++ ){
-//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_BLTZ".$i);
-`$pipeline->instantiate()` ( .din(bltz[`$i`]), .clk, .hold, .clear, .rst, .q(obltz[`$i`]) );
-//; }
-
-//; for( my $i = 0 ; $i < 1 ; $i++ ){
 //;  my $pipeline = generate_base( "pipeline" , "PIPELINE_ALUSRC".$i);
 `$pipeline->instantiate()` ( .din(alusrc[`$i`]), .clk, .hold, .clear, .rst, .q(oalusrc[`$i`]) );
 //; }
@@ -189,11 +159,6 @@ output logic [`$bW-1`:0] osimm
 //; for( my $i = 0 ; $i < 1 ; $i++ ){
 //;  my $pipeline = generate_base( "pipeline" , "PIPELINE_BYTEMEM".$i);
 `$pipeline->instantiate()` ( .din(bytemem[`$i`]), .clk, .hold, .clear, .rst, .q(obytemem[`$i`]) );
-//; }
-
-//; for( my $i = 0 ; $i < 1 ; $i++ ){
-//;  my $pipeline = generate_base( "pipeline" , "PIPELINE_WORDMEM".$i);
-`$pipeline->instantiate()` ( .din(wordmem[`$i`]), .clk, .hold, .clear, .rst, .q(owordmem[`$i`]) );
 //; }
 
 //; for( my $i = 0 ; $i < 1 ; $i++ ){
